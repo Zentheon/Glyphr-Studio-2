@@ -16,6 +16,7 @@ import { GlyphrStudioProject } from '../project_data/glyphr_studio_project.js';
 import { closeAllNavMenus } from '../project_editor/navigator.js';
 import { ProjectEditor } from '../project_editor/project_editor.js';
 import { GlyphrStudioApp, showAppErrorPage } from './app.js';
+import { GlyphrTheme } from '../project_data/theme.js';
 
 /**
  * First function to run when the browser starts
@@ -195,6 +196,17 @@ export function addProjectEditorAndSetAsImportTarget() {
 	app.editorImportTarget = app.projectEditors.at(-1);
 	// log(`addProjectEditorAndSetAsImportTarget`, 'end');
 	return getProjectEditorImportTarget();
+}
+
+/**
+ * Returns the current theme
+ * @returns {GlyphrTheme}
+ */
+/* @type {GlyphrTheme} */
+let GSTheme = new GlyphrTheme();
+export function getCurrentTheme() {
+	GSTheme.applyColors(); // FIXME: testing
+	return GSTheme;
 }
 
 // --------------------------------------------------------------

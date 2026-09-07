@@ -1,11 +1,10 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../../app/main.js';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../../app/main.js';
 import { isVal, round } from '../../common/functions.js';
 import { showToast } from '../../controls/dialogs/dialogs.js';
 import { ControlPoint } from '../../project_data/control_point.js';
 import { Maxes, isMaxes } from '../../project_data/maxes.js';
 import { Path } from '../../project_data/path.js';
 import { PathPoint } from '../../project_data/path_point.js';
-import { canvasUIPointSize } from '../draw_edit_affordances.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
 import { eventHandlerData } from '../events.js';
 import { addPathToCurrentItem, switchToolTo } from './tools.js';
@@ -86,6 +85,7 @@ export class Tool_NewBasicPath {
 		// log(`Tool_NewBasicPath.mouseup`, 'start');
 		const editor = getCurrentProjectEditor();
 		const ehd = eventHandlerData;
+		const theme = getCurrentTheme().settings;
 
 		// Only make the new path if it's not really small
 		let xSize = Math.abs(ehd.newBasicPathMaxes.xMax - ehd.newBasicPathMaxes.xMin);
@@ -94,7 +94,7 @@ export class Tool_NewBasicPath {
 		// log(`ySize: ${ySize}`);
 
 		let path;
-		if (xSize > canvasUIPointSize && ySize > canvasUIPointSize) {
+		if (xSize > theme.handleSize && ySize > theme.handleSize) {
 			// log(`New path is large enough`);
 			let count = editor.selectedItem.shapes.length;
 

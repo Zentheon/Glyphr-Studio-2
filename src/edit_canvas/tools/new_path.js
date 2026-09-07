@@ -1,10 +1,9 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../../app/main.js';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../../app/main.js';
 import { insertAfter, makeElement } from '../../common/dom.js';
 import { Path } from '../../project_data/path.js';
 import { PathPoint } from '../../project_data/path_point.js';
 import { setCursor } from '../cursors.js';
 import { isOverFirstPoint } from '../detect_edit_affordances.js';
-import { canvasUIPointSize } from '../draw_edit_affordances.js';
 import { cXsX, cYsY, sXcX, sYcY } from '../edit_canvas.js';
 import { eventHandlerData } from '../events.js';
 import { checkForFirstShapeAutoRSB, selectTool } from './tools.js';
@@ -103,15 +102,15 @@ export class Tool_NewPath {
 	mousemove() {
 		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
+		const theme = getCurrentTheme().settings;
 
 		if (this.dragging) {
-
-					// log(`\n⮟this.currentPoint⮟`);
-					// log(this.currentPoint);
+			// log(`\n⮟this.currentPoint⮟`);
+			// log(this.currentPoint);
 			// avoid really small handles
 			if (
-				Math.abs(sXcX(this.currentPoint.p.x) - ehd.mousePosition.x) > canvasUIPointSize ||
-				Math.abs(sYcY(this.currentPoint.p.y) - ehd.mousePosition.y) > canvasUIPointSize
+				Math.abs(sXcX(this.currentPoint.p.x) - ehd.mousePosition.x) > theme.handleSize ||
+				Math.abs(sYcY(this.currentPoint.p.y) - ehd.mousePosition.y) > theme.handleSize
 			) {
 				this.currentPoint.h1.use = true;
 				this.currentPoint.h2.use = true;

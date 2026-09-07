@@ -1,4 +1,4 @@
-import { getCurrentProjectEditor } from '../app/main.js';
+import { getCurrentProjectEditor, getCurrentTheme } from '../app/main.js';
 import { accentColors, uiColors } from '../common/colors.js';
 import {
 	calculateAngle,
@@ -18,19 +18,6 @@ import { enabledQualityChecks } from '../project_editor/quality_checks.js';
 import { cXsX, cYsY, sXcX, sYcY } from './edit_canvas.js';
 import { eventHandlerData } from './events.js';
 import { canResize } from './events_mouse.js';
-
-// --------------------------------------------------------------
-// Common size stuff
-// --------------------------------------------------------------
-
-export let canvasUIPointSize = 7;
-let rotateHandleHeight = 40;
-let accentBlue = accentColors.blue.l65;
-let accentGreen = accentColors.green.l65;
-let accentGray = accentColors.gray.l65;
-let pathFill = '#000';
-let pointFill = '#FFF';
-let multiSelectThickness = 3;
 
 // --------------------------------------------------------------
 // Compute and Draw functions
@@ -83,16 +70,17 @@ export function computeAndDrawBoundingBoxHandles(ctx) {
  * @returns {Object} - with thickness and accent color
  */
 function computeSelectionStyle() {
+	const theme = getCurrentTheme().settings;
 	const editor = getCurrentProjectEditor();
 	let msShapes = editor.multiSelect.shapes;
 	let thickness = 1;
-	let accent = accentBlue;
+	let accent = theme.colors.primary;
 	if (msShapes.length > 1) {
-		thickness = multiSelectThickness;
-		accent = accentGray;
+		thickness = theme.multiSelectThickness;
+		accent = theme.colors.secondary;
 	} else {
 		if (msShapes.singleton.objType === 'ComponentInstance') {
-			accent = accentGreen;
+			accent = theme.colors.tertiary;
 		}
 	}
 	return { thickness: thickness, accent: accent };
@@ -136,25 +124,26 @@ export function drawBoundingBox(ctx, maxes, thickness, accent) {
  * @param {String} accent - color for the box
  */
 function drawBoundingBoxHandles(ctx, maxes, thickness, accent) {
+	const theme = getCurrentTheme().settings;
 	// log(`drawBoundingBoxHandles`, 'start');
 	let bb = getBoundingBoxAndHandleDimensions(maxes, thickness);
-	ctx.fillStyle = pointFill;
+	ctx.fillStyle = theme.colors.pointFill;
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = accent;
 
 	const msShapes = getCurrentProjectEditor().multiSelect.shapes;
 	if (msShapes.isRotatable()) {
-		const halfPointSize = canvasUIPointSize / 2;
+		const halfPointSize = theme.handleSize / 2;
 		ctx.lineWidth = thickness;
 		drawLine(
 			ctx,
 			{ x: bb.midX + 1, y: bb.topY },
-			{ x: bb.midX + 1, y: bb.topY - rotateHandleHeight }
+			{ x: bb.midX + 1, y: bb.topY - theme.rotateHandleHeight }
 		);
 		ctx.lineWidth = 1;
 		drawCircleHandle(ctx, {
 			x: bb.midX + 1,
-			y: bb.topY - rotateHandleHeight + halfPointSize,
+			y: bb.topY - theme.rotateHandleHeight + halfPointSize,
 		});
 	}
 
@@ -188,10 +177,10 @@ function drawBoundingBoxHandles(ctx, maxes, thickness, accent) {
  * Draws the rotation affordance, a short handle with a circle
  * above the bounding box.
  * @param {CanvasRenderingContext2D} ctx - canvas context
- * @param {String} accent - color for the handle
  * @param {Number} thickness - how thick the line should be
  */
-function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
+function drawRotationAffordance(ctx, accent = 'hsl(198, 100%, 46%)', thickness = 1) {
+	const theme = getCurrentTheme().settings;
 	// log(`drawRotationAffordance`, 'start');
 	// const editor = getCurrentProjectEditor();
 	const ehd = eventHandlerData;
@@ -250,7 +239,7 @@ function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
 
 	// rotate Handle
 	ctx.strokeStyle = accent;
-	ctx.fillStyle = pointFill;
+	ctx.fillStyle = theme.colors.pointFill;
 	ctx.lineWidth = thickness;
 	drawLine(ctx, { x: canvasHandle.x, y: canvasHandle.y }, { x: canvasCenter.x, y: canvasCenter.y });
 	ctx.lineWidth = 1;
@@ -279,6 +268,7 @@ function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
  * @returns {String | false} - letter representing the compass location of the hovered handle
  */
 export function isOverBoundingBoxHandle(px, py, maxes) {
+	const theme = getCurrentTheme().settings;
 	// log(`isOverBoundingBoxHandle`, 'start');
 	// log('\t px/py - ' + px + ' / ' + py);
 	// log('\t maxes - ' + json(maxes, true));
@@ -290,8 +280,9 @@ export function isOverBoundingBoxHandle(px, py, maxes) {
 	}
 
 	const editor = getCurrentProjectEditor();
+
 	let re = '';
-	let ps = canvasUIPointSize;
+	let ps = theme.handleSize;
 	let bb = getBoundingBoxAndHandleDimensions(maxes);
 
 	// log('\t point size - ' + ps);
@@ -303,8 +294,8 @@ export function isOverBoundingBoxHandle(px, py, maxes) {
 		if (
 			px > bb.midX &&
 			px < bb.midX + ps &&
-			py > bb.topY - rotateHandleHeight &&
-			py < bb.topY - rotateHandleHeight + ps
+			py > bb.topY - theme.rotateHandleHeight &&
+			py < bb.topY - theme.rotateHandleHeight + ps
 		) {
 			re = 'rotate';
 		}
@@ -374,8 +365,9 @@ export function isOverBoundingBoxHandle(px, py, maxes) {
  * @returns {Object} - container for a bunch of metrics for all of the resize handles
  */
 function getBoundingBoxAndHandleDimensions(maxes, thickness = 1) {
-	const pt = canvasUIPointSize;
-	const hp = canvasUIPointSize / 2;
+	const theme = getCurrentTheme().settings;
+	const pt = theme.handleSize;
+	const hp = theme.handleSize / 2;
 	const pad = 1;
 
 	// Translation Fidelity - converting passed canvas values to saved value system
@@ -461,13 +453,14 @@ export function drawSelectedPathOutline(ctx, view) {
  * @param {Object} view - view object (dx, dy, dz)
  */
 export function drawNewBasicPath(ctx, path, view) {
+	const theme = getCurrentTheme().settings;
 	ctx.beginPath();
 	drawShape(path, ctx, view);
 	ctx.closePath();
 
-	ctx.fillStyle = pathFill;
+	ctx.fillStyle = theme.colors.glyph;
 	ctx.fill();
-	ctx.strokeStyle = accentBlue;
+	ctx.strokeStyle = theme.colors.primary;
 	ctx.stroke();
 
 	drawBoundingBox(ctx, path.maxes);
@@ -499,8 +492,9 @@ function drawLine(ctx, p1, p2) {
  * @param {Object} ul - x/y point for the upper left of the handle
  */
 function drawSquareHandle(ctx, ul) {
-	ctx.fillRect(ul.x, ul.y, canvasUIPointSize, canvasUIPointSize);
-	ctx.strokeRect(ul.x, ul.y, canvasUIPointSize, canvasUIPointSize);
+	const theme = getCurrentTheme().settings;
+	ctx.fillRect(ul.x, ul.y, theme.handleSize, theme.handleSize);
+	ctx.strokeRect(ul.x, ul.y, theme.handleSize, theme.handleSize);
 }
 
 /**
@@ -510,11 +504,12 @@ function drawSquareHandle(ctx, ul) {
  * @param {Object} center - x/y point
  */
 function drawCircleHandle(ctx, center) {
+	const theme = getCurrentTheme().settings;
 	// log(`drawCircleHandle`, 'start');
 	// log(`center.x: ${center.x}`);
 	// log(`center.y: ${center.y}`);
 	ctx.beginPath();
-	ctx.arc(center.x, center.y, canvasUIPointSize / 2, 0, Math.PI * 2, true);
+	ctx.arc(center.x, center.y, theme.handleSize / 2, 0, Math.PI * 2, true);
 	ctx.closePath();
 	ctx.fill();
 	ctx.stroke();
@@ -603,10 +598,11 @@ export function computeAndDrawPathPoints(ctx, drawAllPathPoints = false) {
  * @param {ControlPoint | Object} point - the 'p' control point
  */
 export function drawPathPointHover(ctx, point) {
+	const theme = getCurrentTheme().settings;
 	// log(`drawPathPointHover`, 'start');
 	// log(`\n⮟point⮟`);
 	// log(point);
-	let size = canvasUIPointSize;
+	let size = theme.handleSize;
 	if (point) {
 		ctx.fillStyle = accentColors.blue.l85;
 		ctx.fillRect(point.x, point.y, size, size);
@@ -625,22 +621,22 @@ export function drawPathPointHover(ctx, point) {
  * @param {Boolean} isSelected - draw this as selected
  */
 export function drawPoint(point, ctx, isSelected) {
+	const theme = getCurrentTheme().settings;
 	// log('PathPoint.drawPoint', 'start');
 	// log('sel = ' + isSelected);
 
-	let canvasUIPointSize = 7;
-	let pointFill = uiColors.offWhite;
+	// let theme.colors.pointFill = uiColors.offWhite;
 	let accent = uiColors.accent;
-	const halfPointSize = canvasUIPointSize / 2;
+	const halfPointSize = theme.handleSize / 2;
 	// ctx.fillStyle = sel? 'white' : accent;
-	ctx.fillStyle = isSelected ? pointFill : accent;
+	ctx.fillStyle = isSelected ? theme.colors.pointFill : accent;
 	ctx.strokeStyle = accent;
 	ctx.font = '10px Consolas';
 
 	let px = sXcX(point.p.x) - halfPointSize;
 	let py = sYcY(point.p.y) - halfPointSize;
-	ctx.fillRect(px, py, canvasUIPointSize, canvasUIPointSize);
-	ctx.strokeRect(px, py, canvasUIPointSize, canvasUIPointSize);
+	ctx.fillRect(px, py, theme.handleSize, theme.handleSize);
+	ctx.strokeRect(px, py, theme.handleSize, theme.handleSize);
 
 	// ctx.fillStyle = 'orange';
 	// ctx.fillText(point.__ID, px + 12, py);
@@ -658,12 +654,13 @@ export function drawPoint(point, ctx, isSelected) {
  * @param {Object} next - next Point in the path sequence
  */
 export function drawDirectionalityPoint(point, ctx, isSelected, next) {
+	const theme = getCurrentTheme().settings;
 	// ctx.fillStyle = sel? 'white' : accent;
-	// let canvasUIPointSize = 7;
-	let pointFill = uiColors.offWhite;
+	// let theme.handleSize = 7;
+	// let theme.colors.pointFill = uiColors.offWhite;
 	let accent = uiColors.accent;
 
-	ctx.fillStyle = isSelected ? pointFill : accent;
+	ctx.fillStyle = isSelected ? theme.colors.pointFill : accent;
 	ctx.strokeStyle = accent;
 	ctx.lineWidth = 1;
 
@@ -674,7 +671,7 @@ export function drawDirectionalityPoint(point, ctx, isSelected, next) {
 		end = { x: next.p.x, y: next.p.y };
 	}
 
-	const halfPointSize = canvasUIPointSize / 2;
+	const halfPointSize = theme.handleSize / 2;
 	const arrow = [
 		[halfPointSize * 3, 0],
 		[halfPointSize, halfPointSize],
@@ -764,6 +761,7 @@ export function drawHandles(point, ctx, drawH1 = true, drawH2 = true) {
  * @param {Object} eventHandlerData - event handler data object
  */
 export function computeAndDrawDragToSelectBox(ctx, eventHandlerData) {
+	const theme = getCurrentTheme().settings;
 	let mouseX = eventHandlerData.mousePosition.x;
 	let mouseY = eventHandlerData.mousePosition.y;
 
@@ -779,7 +777,7 @@ export function computeAndDrawDragToSelectBox(ctx, eventHandlerData) {
 
 	// ctx.fillStyle = 'hsla(125, 100%, 36%, 0.05)';
 	ctx.fillStyle = 'hsl(200, 17%, 45%, 0.05)';
-	ctx.strokeStyle = accentGray;
+	ctx.strokeStyle = theme.colors.secondary;
 	ctx.lineWidth = 1;
 	ctx.setLineDash([3, 3]);
 	ctx.fillRect(box.xMin, box.yMin, box.width, box.height);
@@ -860,12 +858,13 @@ function drawHighlightedPointsForPath(path, ctx) {
  * @param {CanvasRenderingContext2D} ctx - canvas context
  */
 export function drawPointHighlight(point, ctx) {
+	const theme = getCurrentTheme().settings;
 	// log(`drawPointHighlight`, 'start');
 	let px = sXcX(point.x);
 	let py = sYcY(point.y);
 	// log(`canvas: ${px}, ${py}`);
 	ctx.beginPath();
-	ctx.arc(px, py, canvasUIPointSize + 4, 0, Math.PI * 2, true);
+	ctx.arc(px, py, theme.handleSize + 4, 0, Math.PI * 2, true);
 	ctx.closePath();
 	ctx.strokeStyle = 'red';
 	ctx.stroke();

@@ -1,9 +1,8 @@
-import { getCurrentProjectEditor } from '../app/main';
+import { getCurrentProjectEditor, getCurrentTheme } from '../app/main';
 import { xyPointsAreClose } from '../common/functions';
 import { Glyph } from '../project_data/glyph';
 import { Path } from '../project_data/path';
 import { PathPoint } from '../project_data/path_point';
-import { canvasUIPointSize } from './draw_edit_affordances';
 
 /**
  * Looks through a collection of path points, checking an x/y value.
@@ -122,9 +121,11 @@ function isOverPathControlPoint(path, x, y, noHandles) {
  * @returns {Boolean}
  */
 export function isOverFirstPoint(path, x, y) {
+	const theme = getCurrentTheme().settings;
+
 	let pp = path.pathPoints[0];
 	if (!pp) return false;
-	return xyPointsAreClose({ x: x, y: y }, pp.p.coord, canvasUIPointSize);
+	return xyPointsAreClose({ x: x, y: y }, pp.p.coord, theme.handleSize);
 }
 
 /**
@@ -138,7 +139,8 @@ export function isOverFirstPoint(path, x, y) {
 function isOverPathPointControlPoint(pathPoint, x = 0, y = 0, noHandles = false) {
 	// log(`isOverPathPointControlPoint`, 'start');
 	const dz = getCurrentProjectEditor().view.dz;
-	const targetSize = canvasUIPointSize / dz;
+	const theme = getCurrentTheme().settings;
+	const targetSize = theme.handleSize / dz;
 	const test = { x: x, y: y };
 	/** @type {Object | false} */
 	let result = false;
