@@ -1,4 +1,4 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../app/main';
 import { charsToHexArray } from '../common/character_ids';
 import { accentColors, getColorFromRGBA, transparencyToAlpha } from '../common/colors';
 import { makeCrisp } from '../common/functions';
@@ -9,7 +9,6 @@ import {
 	findAndMergeLigatures,
 } from '../display_canvas/text_block';
 import { Maxes } from '../project_data/maxes';
-import { guideColorDark } from '../project_editor/guide';
 import { setCursor } from './cursors';
 import { cXsX, drawEmVerticalLine, sYcY } from './edit_canvas';
 
@@ -334,10 +333,11 @@ function drawContextCharacterRightLineExtras(ctx, char, block) {
  * @param {Number} width
  */
 function drawBaseline(ctx, x, y, width) {
+	let theme = getCurrentTheme().settings;
 	// ctx.fillStyle = accentColors.gray.l90;
 	const transparency = getCurrentProject().settings.app.contextCharacters.guidesTransparency;
 	const alpha = transparencyToAlpha(transparency);
-	ctx.fillStyle = getColorFromRGBA(guideColorDark, alpha);
+	ctx.fillStyle = getColorFromRGBA(theme.colors.guideDark, alpha);
 	ctx.fillRect(x, Math.ceil(y), width, 1);
 }
 

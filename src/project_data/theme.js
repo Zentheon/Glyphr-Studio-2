@@ -44,6 +44,10 @@ export class GlyphrTheme {
 					glyphFill: 'hsl(0, 0%, 0%)', // Fill color for glyph paths and previews
 					glyphBackground: 'hsl(0, 0%, 100%)', // Background for glyph editors and previews
 					pointFill: 'hsl(0, 0%, 100%)', // Control point/handle fill
+					guideLight: 'rgb(127, 0, 255)',
+					guideMedium: 'rgb(212, 154, 125)',
+					guideDark: 'rgb(191, 106, 64)',
+					grid: 'rgb(96, 96, 136)',
 				},
 				gradients: {
 					onPrimaryFixed: { val: 0.1, colors: ['onPrimaryFixed'] },

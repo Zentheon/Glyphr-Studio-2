@@ -1,10 +1,9 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../app/main.js';
 import { accentColors, getColorFromRGBA, transparencyToAlpha } from '../common/colors.js';
 import { makeElement } from '../common/dom.js';
 import { clone } from '../common/functions.js';
 import { drawGlyph, drawGlyphOutlineMode } from '../display_canvas/draw_paths.js';
 import { kernGroupSideMaxWidth } from '../project_editor/cross_item_actions.js';
-import { gridColor, guideColorDark, guideColorLight, guideColorMedium } from '../project_editor/guide.js';
 import { runQualityChecksForItem } from '../project_editor/quality_checks.js';
 import { drawCharacterKernExtra, drawContextCharacters } from './context_characters.js';
 import {
@@ -420,13 +419,14 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function setSystemGuideColor(level = 'medium', alpha) {
+			let theme = getCurrentTheme().settings;
 			let fill;
 			if (level === 'light') {
-				fill = getColorFromRGBA(guideColorLight, alpha);
+				fill = getColorFromRGBA(theme.colors.guideLight, alpha);
 			} else if (level === 'medium') {
-				fill = getColorFromRGBA(guideColorMedium, alpha);
+				fill = getColorFromRGBA(theme.colors.guideMedium, alpha);
 			} else if (level === 'dark') {
-				fill = getColorFromRGBA(guideColorDark, alpha);
+				fill = getColorFromRGBA(theme.colors.guideDark, alpha);
 			}
 			// log(`fill: ${fill}`);
 			ctx.fillStyle = fill;
@@ -454,6 +454,7 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawGrid() {
+			let theme = getCurrentTheme().settings;
 			const gridSquareSize =
 				editor.project.settings.font.upm / editor.project.settings.app.guides.gridDivisions;
 			let x0 = Math.floor(cXsX(0) / gridSquareSize) * gridSquareSize;
@@ -463,7 +464,7 @@ export class EditCanvas extends HTMLElement {
 
 			// log(`fill: ${fill}`);
 			let alpha = transparencyToAlpha(editor.project.settings.app.guides.gridTransparency);
-			const fill = getColorFromRGBA(gridColor, alpha);
+			const fill = getColorFromRGBA(theme.colors.grid, alpha);
 			ctx.fillStyle = fill;
 			for (let x = x0; x <= x1; x += gridSquareSize) {
 				ctx.fillRect(Math.floor(sXcX(x)), 0, 1, height);

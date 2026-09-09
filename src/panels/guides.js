@@ -1,15 +1,10 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../app/main.js';
 import { makeRandomSaturatedColor, parseColorString, rgbToHex } from '../common/colors.js';
 import { addAsChildren, makeElement } from '../common/dom.js';
 import { round } from '../common/functions.js';
 import { makeIcon } from '../common/graphics.js';
 import { makeFancySlider } from '../controls/fancy-slider/fancy_slider.js';
-import {
-	Guide,
-	guideColorDark,
-	guideColorLight,
-	guideColorMedium,
-} from '../project_editor/guide.js';
+import { Guide } from '../project_editor/guide.js';
 import { makeActionButton } from './action_buttons.js';
 import { makeDirectCheckbox, makeSingleInput, makeSingleLabel, rowPad } from './cards.js';
 import { refreshPanel } from './panels.js';
@@ -114,6 +109,7 @@ function refreshGuideChange() {
 }
 
 export function makeSystemGuidesCard() {
+	let theme = getCurrentTheme().settings;
 	let systemCard = makeElement({
 		className: 'panel__card guides-card__system',
 		innerHTML: '<h3>Key metrics guides</h3>',
@@ -122,13 +118,13 @@ export function makeSystemGuidesCard() {
 	const metrics = getCurrentProject().settings.font;
 	const advanceWidth = getCurrentProjectEditor().selectedItem.advanceWidth;
 	addAsChildren(systemCard, [
-		makeSystemGuideRow('ascent', 'Ascent', metrics.ascent, guideColorMedium),
-		makeSystemGuideRow('capHeight', 'Cap height', metrics.capHeight, guideColorLight),
-		makeSystemGuideRow('xHeight', 'X height', metrics.xHeight, guideColorLight),
-		makeSystemGuideRow('baseline', 'Baseline', '0', guideColorDark),
-		makeSystemGuideRow('descent', 'Descent', metrics.descent, guideColorMedium),
-		makeSystemGuideRow('leftSide', 'Left side', '0', guideColorDark),
-		makeSystemGuideRow('rightSide', 'Right side', advanceWidth, guideColorDark),
+		makeSystemGuideRow('ascent', 'Ascent', metrics.ascent, theme.colors.guideMedium),
+		makeSystemGuideRow('capHeight', 'Cap height', metrics.capHeight, theme.colors.guideLight),
+		makeSystemGuideRow('xHeight', 'X height', metrics.xHeight, theme.colors.guideLight),
+		makeSystemGuideRow('baseline', 'Baseline', '0', theme.colors.guideDark),
+		makeSystemGuideRow('descent', 'Descent', metrics.descent, theme.colors.guideMedium),
+		makeSystemGuideRow('leftSide', 'Left side', '0', theme.colors.guideDark),
+		makeSystemGuideRow('rightSide', 'Right side', advanceWidth, theme.colors.guideDark),
 	]);
 	return systemCard;
 }

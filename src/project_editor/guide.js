@@ -5,6 +5,8 @@
 		custom guides to a Glyphr Studio Project.
 **/
 
+export const defaultCustomGuideColor = 'rgb(127, 0, 255)';
+
 export class Guide {
 	constructor(oa = {}) {
 		// log(`Guide.constructor`, 'start');
@@ -50,13 +52,3 @@ export class Guide {
 		this._name = newName;
 	}
 }
-
-// --------------------------------------------------------------
-// Colors
-// --------------------------------------------------------------
-
-export const defaultCustomGuideColor = 'rgb(127, 0, 255)';
-export const guideColorLight = 'rgb(227, 190, 171)';
-export const guideColorMedium = 'rgb(212, 154, 125)';
-export const guideColorDark = 'rgb(191, 106, 64)';
-export const gridColor = 'rgb(96, 96, 136)';
