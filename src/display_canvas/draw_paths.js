@@ -19,7 +19,7 @@ import { Path } from '../project_data/path.js';
  * @param {String} fill - glyph fill color (Default: sourced from theme)
  * @returns {Number} - Advance Width, according to view.z
  */
-export function drawGlyph(glyph, ctx, view = { x: 0, y: 0, z: 1 }, alpha = 1, fill) {
+export function drawGlyph(glyph, ctx, view = { x: 0, y: 0, z: 1 }, alpha = 1, fill = undefined) {
 	if (!fill) {
 		fill = getCurrentTheme().settings.colors.glyphFill;
 	}
