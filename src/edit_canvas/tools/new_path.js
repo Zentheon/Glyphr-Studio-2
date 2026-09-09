@@ -102,7 +102,7 @@ export class Tool_NewPath {
 	mousemove() {
 		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
-		const theme = getCurrentTheme().settings;
+		const theme = getCurrentTheme().active;
 
 		if (this.dragging) {
 			// log(`\n⮟this.currentPoint⮟`);

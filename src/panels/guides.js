@@ -109,7 +109,7 @@ function refreshGuideChange() {
 }
 
 export function makeSystemGuidesCard() {
-	let theme = getCurrentTheme().settings;
+	let theme = getCurrentTheme().active;
 	let systemCard = makeElement({
 		className: 'panel__card guides-card__system',
 		innerHTML: '<h3>Key metrics guides</h3>',

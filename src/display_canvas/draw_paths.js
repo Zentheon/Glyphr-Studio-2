@@ -21,7 +21,7 @@ import { Path } from '../project_data/path.js';
  */
 export function drawGlyph(glyph, ctx, view = { x: 0, y: 0, z: 1 }, alpha = 1, fill = undefined) {
 	if (!fill) {
-		fill = getCurrentTheme().settings.colors.glyphFill;
+		fill = getCurrentTheme().active.colors.glyphFill;
 	}
 	// log('drawGlyph', 'start');
 	// log(glyph.name);

@@ -1,78 +1,79 @@
 import { offsetHSL, parseHSLString } from '../common/colors';
-import { caseCamelToKebab } from '../common/functions';
+import { caseCamelToKebab, clone, json } from '../common/functions';
 import { showToast } from '../controls/dialogs/dialogs';
 
-const fallbackColor = 'hsl(0, 0%, 0%)';
+export const fallbackColor = 'hsl(0, 0%, 0%)';
+
+/** @type {Object} */
+import glyphrLight from './themes/glyphr-light.json';
+
+const themeArray = [glyphrLight];
+export const themes = Object.fromEntries(themeArray.map((theme) => [theme.id, theme]));
 
 /**
  * Creates a new Glyphr Studio theme
  */
 export class GlyphrTheme {
-	/**
-	 * Initialize a theme, with defaults
-	 * @param {Object} newTheme - Glyphr Studio theme JSON
-	 */
-	constructor(newTheme = {}) {
+	constructor(overrides = {}) {
 		this.valid = true; // Switched to false if errors occur while parsing a theme.
-		this.settings = Object.assign(
-			{
-				handleSize: 7,
-				rotateHandleHeight: 40,
-				multiSelectThickness: 3,
-				colors: {
-					// Loosely following https://m3.material.io/styles/color/roles
-					primary: 'hsl(198, 100%, 46%)',
-					primaryContainer: 'hsl(198, 100%, 70%)',
-					onPrimary: 'hsl(198, 100%, 96%)',
-					onPrimaryFixed: 'hsl(198, 100%, 8%)',
-					onPrimaryFixedVariant: 'hsl(198, 100%, 21%)',
-					secondary: 'hsl(198, 40%, 59%)',
-					secondaryContainer: 'hsl(198, 40%, 65%)',
-					onSecondary: 'hsl(198, 40%, 94%)',
-					onSecondaryFixed: 'hsl(198, 40%, 10%)',
-					onSecondaryFixedVariant: 'hsl(198, 40%, 17%)',
-					tertiary: 'hsl(285, 100%, 61%)',
-					tertiaryContainer: 'hsl(285, 100%, 81%)',
-					onTertiary: 'hsl(285, 100%, 97%)',
-					onTertiaryFixed: 'hsl(198, 100%, 10%)',
-					onTertiaryFixedVariant: 'hsl(285, 100%, 9%)',
-					surfaceDim: 'hsl(220, 100%, 85%)',
-					surface: 'hsl(220, 100%, 92%)',
-					onSurface: 'hsl(0, 0%, 0%)',
-					onSurfaceVariant: 'hsl(0, 0%, 30%)',
-					glyphComponent: 'hsl(125, 100%, 36%)', // Color assotiated with components
-					glyphFill: 'hsl(0, 0%, 0%)', // Fill color for glyph paths and previews
-					glyphBackground: 'hsl(0, 0%, 100%)', // Background for glyph editors and previews
-					pointFill: 'hsl(0, 0%, 100%)', // Control point/handle fill
-					guideLight: 'rgb(127, 0, 255)',
-					guideMedium: 'rgb(212, 154, 125)',
-					guideDark: 'rgb(191, 106, 64)',
-					grid: 'rgb(96, 96, 136)',
-				},
-				gradients: {
-					onPrimaryFixed: { val: 0.1, colors: ['onPrimaryFixed'] },
-					darkPrimaryTertiary: {
-						deg: 135,
-						colors: ['onPrimaryFixedVariant', 'onTertiaryFixedVariant'],
-					},
-				},
-			},
-			newTheme
-		);
+		this.name = glyphrLight.name;
+		this.id = glyphrLight.id;
+		this.theme = glyphrLight.theme;
+		this.baseTheme = undefined;
+		this.active = {};
+		this.updateOverrides(overrides);
 	}
+
+	/**
+	 * Refresh the current active theme using the provided user overrides.
+	 * @param {object} overrides
+	 */
+	updateOverrides(overrides = {}) {
+		Object.assign(this.active, this.theme);
+		Object.assign(this.active, overrides);
+	}
+
+	/**
+	 * @param {string} themeID
+	 */
+	changeTheme(themeID) {
+		const chain = [];
+		let currentID = themeID;
+
+		while (currentID) {
+			if (!themes[currentID]) {
+				return new Error(`Theme ${currentID} does not exist`);
+			}
+			chain.push(currentID);
+			currentID = themes[currentID]['basetheme'];
+		}
+		if (currentID && themes[currentID]) chain.push(currentID);
+
+		// Chain is [child, ..., base]; apply from oldest to newest so child overrides base
+		for (let i = chain.length - 1; i >= 0; i--) {
+			this.theme = themes[chain[i]].theme;
+		}
+
+		this.valid = true;
+		this.name = themes[themeID].name || themeID;
+		this.id = themeID;
+
+		this.applyColors();
+	}
+
 	/**
 	 * Applies the current colors to the document.
 	 */
 	applyColors() {
 		this.valid = true;
-		Object.entries(this.settings.colors).forEach(([name, color]) => {
+		Object.entries(this.active.colors).forEach(([name, color]) => {
 			let nameKebab = caseCamelToKebab(name);
 			this.#validateColor(name, color);
 			document.documentElement.style.setProperty('--color-' + nameKebab, color);
 		});
 
 		// Gradients
-		Object.entries(this.settings.gradients).forEach(([name, entry]) => {
+		Object.entries(this.active.gradients).forEach(([name, entry]) => {
 			let nameKebab = caseCamelToKebab(name);
 			let gradient = this.#parseGradientEntry(name, entry);
 			// log(`Generated gradient: ${gradient}`);
@@ -84,12 +85,12 @@ export class GlyphrTheme {
 	}
 
 	/**
-	 * Parses a CSS gradient using a this.settings.gradient key:value entry.
+	 * Parses a CSS gradient using a this.active.gradient key:value entry.
 	 * @param {string} name
 	 * @param {object} entry
 	 */
 	#parseGradientEntry(name, entry) {
-		let errors = false;
+		this.valid = true;
 		let gradient = fallbackColor;
 		if (typeof entry.colors == 'string') {
 			entry.colors = [entry.colors];
@@ -125,11 +126,37 @@ export class GlyphrTheme {
 	}
 
 	/**
+	 * Capture the current state into a theme object.
+	 * @param {boolean} active - True: include applied overrides
+	 */
+	save(active = false) {
+		let theme = active ? this.active : this.theme;
+		const result = {
+			name: this.name,
+			id: this.id,
+			theme: clone(theme),
+		};
+		if (this.baseTheme) {
+			result.baseTheme = this.baseTheme;
+		}
+		return result;
+	}
+
+	/**
+	 * Create a theme json using the current state.
+	 * @param {boolean} active - True: Include applied overrides
+	 *  @param {boolean} raw - True: Do not pretty format
+	 */
+	themeJSON(active = false, raw = true) {
+		return json(this.save(active), raw);
+	}
+
+	/**
 	 * Check if a color exists in this theme.
 	 * @param {string} name
 	 */
 	checkColorExists(name) {
-		if (!(name in this.settings.colors)) {
+		if (!(name in this.active.colors)) {
 			return false;
 		}
 		return true;
@@ -139,10 +166,10 @@ export class GlyphrTheme {
 	 * @param {string} name
 	 */
 	getColor(name) {
-		if (!(name in this.settings.colors)) {
+		if (!(name in this.active.colors)) {
 			return fallbackColor;
 		}
-		return this.settings.colors[name];
+		return this.active.colors[name];
 	}
 
 	/**
@@ -164,12 +191,12 @@ export class GlyphrTheme {
 	 * @param {string} key
 	 */
 	#getValidColor(key) {
-		if (!(key in this.settings.colors)) {
+		if (!(key in this.active.colors)) {
 			log(new Error(`Color "${key}" does not exist in theme.`));
 			this.valid = false;
 			return fallbackColor;
 		}
-		let color = this.#validateColor(key, this.settings.colors[key]);
+		let color = this.#validateColor(key, this.active.colors[key]);
 		return color;
 	}
 }

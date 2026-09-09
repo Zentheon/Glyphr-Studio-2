@@ -333,7 +333,7 @@ function drawContextCharacterRightLineExtras(ctx, char, block) {
  * @param {Number} width
  */
 function drawBaseline(ctx, x, y, width) {
-	let theme = getCurrentTheme().settings;
+	let theme = getCurrentTheme().active;
 	// ctx.fillStyle = accentColors.gray.l90;
 	const transparency = getCurrentProject().settings.app.contextCharacters.guidesTransparency;
 	const alpha = transparencyToAlpha(transparency);

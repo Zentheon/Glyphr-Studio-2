@@ -121,7 +121,7 @@ function isOverPathControlPoint(path, x, y, noHandles) {
  * @returns {Boolean}
  */
 export function isOverFirstPoint(path, x, y) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 
 	let pp = path.pathPoints[0];
 	if (!pp) return false;
@@ -139,7 +139,7 @@ export function isOverFirstPoint(path, x, y) {
 function isOverPathPointControlPoint(pathPoint, x = 0, y = 0, noHandles = false) {
 	// log(`isOverPathPointControlPoint`, 'start');
 	const dz = getCurrentProjectEditor().view.dz;
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	const targetSize = theme.handleSize / dz;
 	const test = { x: x, y: y };
 	/** @type {Object | false} */

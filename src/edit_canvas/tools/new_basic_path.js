@@ -85,7 +85,7 @@ export class Tool_NewBasicPath {
 		// log(`Tool_NewBasicPath.mouseup`, 'start');
 		const editor = getCurrentProjectEditor();
 		const ehd = eventHandlerData;
-		const theme = getCurrentTheme().settings;
+		const theme = getCurrentTheme().active;
 
 		// Only make the new path if it's not really small
 		let xSize = Math.abs(ehd.newBasicPathMaxes.xMax - ehd.newBasicPathMaxes.xMin);

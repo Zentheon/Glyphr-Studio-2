@@ -419,7 +419,7 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function setSystemGuideColor(level = 'medium', alpha) {
-			let theme = getCurrentTheme().settings;
+			let theme = getCurrentTheme().active;
 			let fill;
 			if (level === 'light') {
 				fill = getColorFromRGBA(theme.colors.guideLight, alpha);
@@ -454,7 +454,7 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawGrid() {
-			let theme = getCurrentTheme().settings;
+			let theme = getCurrentTheme().active;
 			const gridSquareSize =
 				editor.project.settings.font.upm / editor.project.settings.app.guides.gridDivisions;
 			let x0 = Math.floor(cXsX(0) / gridSquareSize) * gridSquareSize;

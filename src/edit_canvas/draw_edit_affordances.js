@@ -70,7 +70,7 @@ export function computeAndDrawBoundingBoxHandles(ctx) {
  * @returns {Object} - with thickness and accent color
  */
 function computeSelectionStyle() {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	const editor = getCurrentProjectEditor();
 	let msShapes = editor.multiSelect.shapes;
 	let thickness = 1;
@@ -124,7 +124,7 @@ export function drawBoundingBox(ctx, maxes, thickness, accent) {
  * @param {String} accent - color for the box
  */
 function drawBoundingBoxHandles(ctx, maxes, thickness, accent) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`drawBoundingBoxHandles`, 'start');
 	let bb = getBoundingBoxAndHandleDimensions(maxes, thickness);
 	ctx.fillStyle = theme.colors.pointFill;
@@ -180,7 +180,7 @@ function drawBoundingBoxHandles(ctx, maxes, thickness, accent) {
  * @param {Number} thickness - how thick the line should be
  */
 function drawRotationAffordance(ctx, accent = 'hsl(198, 100%, 46%)', thickness = 1) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`drawRotationAffordance`, 'start');
 	// const editor = getCurrentProjectEditor();
 	const ehd = eventHandlerData;
@@ -268,7 +268,7 @@ function drawRotationAffordance(ctx, accent = 'hsl(198, 100%, 46%)', thickness =
  * @returns {String | false} - letter representing the compass location of the hovered handle
  */
 export function isOverBoundingBoxHandle(px, py, maxes) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`isOverBoundingBoxHandle`, 'start');
 	// log('\t px/py - ' + px + ' / ' + py);
 	// log('\t maxes - ' + json(maxes, true));
@@ -365,7 +365,7 @@ export function isOverBoundingBoxHandle(px, py, maxes) {
  * @returns {Object} - container for a bunch of metrics for all of the resize handles
  */
 function getBoundingBoxAndHandleDimensions(maxes, thickness = 1) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	const pt = theme.handleSize;
 	const hp = theme.handleSize / 2;
 	const pad = 1;
@@ -453,7 +453,7 @@ export function drawSelectedPathOutline(ctx, view) {
  * @param {Object} view - view object (dx, dy, dz)
  */
 export function drawNewBasicPath(ctx, path, view) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	ctx.beginPath();
 	drawShape(path, ctx, view);
 	ctx.closePath();
@@ -492,7 +492,7 @@ function drawLine(ctx, p1, p2) {
  * @param {Object} ul - x/y point for the upper left of the handle
  */
 function drawSquareHandle(ctx, ul) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	ctx.fillRect(ul.x, ul.y, theme.handleSize, theme.handleSize);
 	ctx.strokeRect(ul.x, ul.y, theme.handleSize, theme.handleSize);
 }
@@ -504,7 +504,7 @@ function drawSquareHandle(ctx, ul) {
  * @param {Object} center - x/y point
  */
 function drawCircleHandle(ctx, center) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`drawCircleHandle`, 'start');
 	// log(`center.x: ${center.x}`);
 	// log(`center.y: ${center.y}`);
@@ -598,7 +598,7 @@ export function computeAndDrawPathPoints(ctx, drawAllPathPoints = false) {
  * @param {ControlPoint | Object} point - the 'p' control point
  */
 export function drawPathPointHover(ctx, point) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`drawPathPointHover`, 'start');
 	// log(`\n⮟point⮟`);
 	// log(point);
@@ -621,7 +621,7 @@ export function drawPathPointHover(ctx, point) {
  * @param {Boolean} isSelected - draw this as selected
  */
 export function drawPoint(point, ctx, isSelected) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log('PathPoint.drawPoint', 'start');
 	// log('sel = ' + isSelected);
 
@@ -654,7 +654,7 @@ export function drawPoint(point, ctx, isSelected) {
  * @param {Object} next - next Point in the path sequence
  */
 export function drawDirectionalityPoint(point, ctx, isSelected, next) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// ctx.fillStyle = sel? 'white' : accent;
 	// let theme.handleSize = 7;
 	// let theme.colors.pointFill = uiColors.offWhite;
@@ -761,7 +761,7 @@ export function drawHandles(point, ctx, drawH1 = true, drawH2 = true) {
  * @param {Object} eventHandlerData - event handler data object
  */
 export function computeAndDrawDragToSelectBox(ctx, eventHandlerData) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	let mouseX = eventHandlerData.mousePosition.x;
 	let mouseY = eventHandlerData.mousePosition.y;
 
@@ -858,7 +858,7 @@ function drawHighlightedPointsForPath(path, ctx) {
  * @param {CanvasRenderingContext2D} ctx - canvas context
  */
 export function drawPointHighlight(point, ctx) {
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	// log(`drawPointHighlight`, 'start');
 	let px = sXcX(point.x);
 	let py = sYcY(point.y);

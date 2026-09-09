@@ -67,7 +67,7 @@ export class Tool_PathAddPoint {
 
 	mousemove() {
 		const editor = getCurrentProjectEditor();
-		const theme = getCurrentTheme().settings;
+		const theme = getCurrentTheme().active;
 
 		let singlePath = editor.multiSelect.shapes.singleton;
 		if (singlePath) {

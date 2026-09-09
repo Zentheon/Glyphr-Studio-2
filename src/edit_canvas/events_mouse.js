@@ -403,7 +403,7 @@ export function checkForMouseOverHotspot(x, y) {
  */
 export function canResize(handle) {
 	const editor = getCurrentProjectEditor();
-	const theme = getCurrentTheme().settings;
+	const theme = getCurrentTheme().active;
 	const msShapes = editor.multiSelect.shapes;
 	let selected = msShapes;
 	if (msShapes.length > 1) {
