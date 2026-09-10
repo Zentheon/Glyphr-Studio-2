@@ -458,7 +458,7 @@ export function drawNewBasicPath(ctx, path, view) {
 	drawShape(path, ctx, view);
 	ctx.closePath();
 
-	ctx.fillStyle = theme.colors.glyph;
+	ctx.fillStyle = theme.colors.glyphFill;
 	ctx.fill();
 	ctx.strokeStyle = theme.colors.primary;
 	ctx.stroke();

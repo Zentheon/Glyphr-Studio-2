@@ -2,25 +2,30 @@ import { offsetHSL, parseHSLString } from '../common/colors';
 import { caseCamelToKebab, clone, json } from '../common/functions';
 import { showToast } from '../controls/dialogs/dialogs';
 
-export const fallbackColor = 'hsl(0, 0%, 0%)';
+import glyphr from './themes/glyphr.json';
 
-/** @type {Object} */
-import glyphrLight from './themes/glyphr-light.json';
+export const FALLBACK_COLOR = 'hsl(0, 0%, 0%)';
+export const THEME_MODES = { system: 'System', light: 'Light', dark: 'Dark' };
 
-const themeArray = [glyphrLight];
+export const isDarkSchemePreferred = () =>
+	window?.matchMedia?.('(prefers-color-scheme:dark)')?.matches ?? false;
+
+const themeArray = [glyphr];
 export const themes = Object.fromEntries(themeArray.map((theme) => [theme.id, theme]));
 
 /**
  * Creates a new Glyphr Studio theme
  */
 export class GlyphrTheme {
-	constructor(overrides = {}) {
+	constructor(themeID = 'glyphr', mode = 'light', overrides = {}) {
 		this.valid = true; // Switched to false if errors occur while parsing a theme.
-		this.name = glyphrLight.name;
-		this.id = glyphrLight.id;
-		this.theme = glyphrLight.theme;
-		this.baseTheme = undefined;
+		this.name = themes[themeID].name;
+		this.id = themeID;
+		this.mode = 'light';
+		this.theme = {};
+		this.extends = undefined;
 		this.active = {};
+		this.changeMode(mode);
 		this.updateOverrides(overrides);
 	}
 
@@ -34,29 +39,55 @@ export class GlyphrTheme {
 	}
 
 	/**
-	 * @param {string} themeID
+	 * @param {string} mode - New mode to use ("system", "dark" or "light")
+	 */
+	changeMode(mode) {
+		// log(`User dark theme preference: ${isDarkSchemePreferred()}`);
+		if (isDarkSchemePreferred() && mode == 'system') {
+			this.mode = 'dark';
+		} else {
+			this.mode = 'light';
+		}
+		// log(`Theme mode set to ${this.mode}`);
+		this.changeTheme(this.id);
+	}
+
+	/**
+	 * Sets the currently active theme.
+	 *
+	 * Does not automatically reapply overrides.
+	 * @param {string} themeID - New theme to use
 	 */
 	changeTheme(themeID) {
-		const chain = [];
+		let chain = [];
 		let currentID = themeID;
+		let currentMode = this.mode;
 
+		// Create the chain of extends dependencies
 		while (currentID) {
 			if (!themes[currentID]) {
 				return new Error(`Theme ${currentID} does not exist`);
 			}
-			chain.push(currentID);
-			currentID = themes[currentID]['basetheme'];
+			chain.push([currentID, currentMode]);
+			if (!themes[currentID][currentMode]?.extends) {
+				break;
+			}
+			const [[k, v]] = Object.entries(themes[currentID][currentMode].extends);
+			currentID = k;
+			currentMode = v;
 		}
-		if (currentID && themes[currentID]) chain.push(currentID);
 
 		// Chain is [child, ..., base]; apply from oldest to newest so child overrides base
 		for (let i = chain.length - 1; i >= 0; i--) {
-			this.theme = themes[chain[i]].theme;
+			let currentID = chain[i][0];
+			let currentMode = chain[i][1];
+			Object.assign(this.theme, themes[currentID][currentMode].settings);
 		}
 
 		this.valid = true;
 		this.name = themes[themeID].name || themeID;
 		this.id = themeID;
+		this.active = this.theme;
 
 		this.applyColors();
 	}
@@ -91,7 +122,7 @@ export class GlyphrTheme {
 	 */
 	#parseGradientEntry(name, entry) {
 		this.valid = true;
-		let gradient = fallbackColor;
+		let gradient = FALLBACK_COLOR;
 		if (typeof entry.colors == 'string') {
 			entry.colors = [entry.colors];
 		}
@@ -136,8 +167,8 @@ export class GlyphrTheme {
 			id: this.id,
 			theme: clone(theme),
 		};
-		if (this.baseTheme) {
-			result.baseTheme = this.baseTheme;
+		if (this.extends) {
+			result.extends = this.extends;
 		}
 		return result;
 	}
@@ -167,7 +198,7 @@ export class GlyphrTheme {
 	 */
 	getColor(name) {
 		if (!(name in this.active.colors)) {
-			return fallbackColor;
+			return FALLBACK_COLOR;
 		}
 		return this.active.colors[name];
 	}
@@ -181,7 +212,7 @@ export class GlyphrTheme {
 		if (!parseHSLString(color)) {
 			log(new Error(`Color "${name}" is invalid: "${color}"`));
 			this.valid = false;
-			return fallbackColor;
+			return FALLBACK_COLOR;
 		}
 		return color;
 	}
@@ -194,7 +225,7 @@ export class GlyphrTheme {
 		if (!(key in this.active.colors)) {
 			log(new Error(`Color "${key}" does not exist in theme.`));
 			this.valid = false;
-			return fallbackColor;
+			return FALLBACK_COLOR;
 		}
 		let color = this.#validateColor(key, this.active.colors[key]);
 		return color;
