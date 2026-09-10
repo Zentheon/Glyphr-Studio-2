@@ -134,13 +134,12 @@ export function getShipDate(dayOffset = 0) {
 // Getting root objects (App, Editor, Project / Current, Import Target)
 // --------------------------------------------------------------
 
+// The main app object
+let GSApp;
 /**
  * Returns the overall App object
  * @returns {GlyphrStudioApp}
  */
-
-// The main app object
-let GSApp;
 export function getGlyphrStudioApp() {
 	if (!GSApp) {
 		GSApp = new GlyphrStudioApp();
@@ -199,14 +198,11 @@ export function addProjectEditorAndSetAsImportTarget() {
 }
 
 /**
- * Returns the current theme
+ * Retrieves the current theme set by the app
  * @returns {GlyphrTheme}
  */
-/* @type {GlyphrTheme} */
-let GSTheme = new GlyphrTheme();
 export function getCurrentTheme() {
-	GSTheme.applyColors(); // FIXME: testing
-	return GSTheme;
+	return GSApp.theme;
 }
 
 // --------------------------------------------------------------

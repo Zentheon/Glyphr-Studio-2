@@ -2,6 +2,7 @@ import { makeElement } from '../common/dom.js';
 import { countItems } from '../common/functions.js';
 import { closeEveryTypeOfDialog, showToast } from '../controls/dialogs/dialogs.js';
 import { parseSemVer } from '../formats_io/validate_file_input.js';
+import { GlyphrTheme } from '../project_data/theme.js';
 import { importGlyphrProjectFromText } from '../project_editor/import_project.js';
 import { ProjectEditor } from '../project_editor/project_editor.js';
 import boolTestProject from '../samples/boolean_tests.gs2?raw';
@@ -60,6 +61,14 @@ export class GlyphrStudioApp {
 		// Current import target
 		this._editorImportTarget = undefined;
 		this.temp = {};
+
+		// Theme
+		this.theme = new GlyphrTheme();
+		this.userTheme = {
+			current: 'glyphr',
+			mode: 'system',
+			overrides: {},
+		};
 	}
 
 	/**
@@ -68,6 +77,17 @@ export class GlyphrStudioApp {
 	setUp() {
 		// log(`GlyphrStudioApp.setUp`, 'start');
 		let editor = addProjectEditorAndSetAsImportTarget();
+
+		// Load appearance settings
+		let themeSettings = this.getLocalStorage()?.themeSettings || {};
+		// log(themeSettings);
+		Object.assign(this.userTheme, themeSettings);
+		this.theme = new GlyphrTheme(
+			this.userTheme.current,
+			this.userTheme.mode,
+			this.userTheme.overrides
+		);
+		// log(this.theme);
 
 		// Dev mode stuff
 		const dev = this.settings.dev;
@@ -308,6 +328,19 @@ export class GlyphrStudioApp {
 		// log(newSaves);
 		this.setLocalStorage('autoSaves', newSaves);
 		// log(`addAutoSaveState`, 'end');
+	}
+
+	/**
+	 * Updates the saved theme settings.
+	 */
+	saveThemeSettings() {
+		// log(`saveThemeSettings`, 'start');
+		const settings = this.userTheme;
+		let newSettings = this.getLocalStorage()?.themeSettings || {};
+		newSettings = settings;
+		// log(`\n⮟newSettings⮟`);
+		// log(newSettings);
+		this.setLocalStorage('themeSettings', newSettings);
 	}
 }
 
