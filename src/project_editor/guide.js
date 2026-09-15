@@ -12,9 +12,33 @@ export class Guide {
 		this.angle = oa.angle === 0 ? 0 : 90;
 		this.name = oa.name;
 		this.location = !isNaN(parseInt(oa.location)) ? parseInt(oa.location) : 200;
+		this.snapEnabled = true;
+		this.snapLimit = oa.snapLimit || 25;
 		this.color = oa.color || defaultCustomGuideColor;
 		this.visible = !!oa.visible;
 		// log(`Guide.constructor`, 'end');
+	}
+
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 */
+	snap(x, y, z) {
+		let result = { x, y, xWithinLimit: false, yWithinLimit: false };
+		if (this.snapEnabled) {
+			const limit = this.snapLimit / z;
+			if (this.angle === 0 && Math.abs(x - this.location) < limit) {
+				result.x = this.location;
+				result.xWithinLimit = true;
+			}
+			if (this.angle === 90 && Math.abs(y - this.location) < limit) {
+				result.y = this.location;
+				result.yWithinLimit = true;
+			}
+		}
+
+		return result;
 	}
 
 	save() {

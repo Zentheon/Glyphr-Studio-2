@@ -1,6 +1,7 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
 import { refreshPanel } from '../../panels/panels.js';
+import { Grid } from '../../project_editor/grid.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { isOverControlPoint } from '../detect_edit_affordances.js';
@@ -164,6 +165,7 @@ export class Tool_PathEdit {
 			this.monitorForDeselect = false;
 			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
 			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
+			let axisLock = null;
 			const cpt = this.controlPoint.type;
 			if (ehd.isShiftDown) this.setInitialPoint();
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
@@ -185,10 +187,12 @@ export class Tool_PathEdit {
 						const ang = calculateAngle(mouse, base);
 						if (isAngleMoreHorizontal(ang)) {
 							// Point is moving more horizontal, snap to mouse y
+							axisLock = 'y';
 							dx = mouse.x - this.controlPoint.x;
 							dy = ehd.initialPoint.baseY - this.controlPoint.y;
 						} else {
 							// Point is moving more vertical, snap to mouse x
+							axisLock = 'x';
 							dx = ehd.initialPoint.baseX - this.controlPoint.x;
 							dy = mouse.y - this.controlPoint.y;
 						}
@@ -208,16 +212,44 @@ export class Tool_PathEdit {
 						}
 					}
 				}
+				// Temporary offsets
+				let s = { x: dx, y: dy };
 				let guides = editor.project.settings.app.guides;
-				if (guides.gridShow && guides.gridSnap) {
-					let gridSquareSize = editor.project.settings.font.upm / guides.gridDivisions;
-					const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-					const mouseSnapped = {
-						x: Math.round(mouse.x / gridSquareSize) * gridSquareSize,
-						y: Math.round(mouse.y / gridSquareSize) * gridSquareSize,
-					};
-					dx = mouseSnapped.x - this.controlPoint.x;
-					dy = mouseSnapped.y - this.controlPoint.y;
+				const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
+				// System guides
+				if (guides.systemShowGuides) {
+					// impl
+				}
+				// Custom guide snap
+				if (guides.customShowGuides) {
+					let x = mouse.x;
+					let y = mouse.y;
+					for (const guide of Object.values(guides.custom)) {
+						let snapped = guide.snap(mouse.x, mouse.y, view.dz);
+						if (snapped.xWithinLimit) x = snapped.x;
+
+						if (snapped.yWithinLimit) y = snapped.y;
+					}
+					s.x = x - this.controlPoint.x;
+					s.y = y - this.controlPoint.y;
+				}
+
+				// Grid snap
+				if (guides.gridShow && guides.gridSnap && !ehd.isAltDown) {
+					let grid = new Grid();
+					grid.settings.x.size = editor.project.settings.font.upm / 10;
+					grid.settings.y.size = editor.project.settings.font.upm / 10;
+
+					let snapped = grid.snap(mouse.x, mouse.y, view.dz);
+					s.x = snapped.x - this.controlPoint.x;
+					s.y = snapped.y - this.controlPoint.y;
+				}
+
+				if (axisLock !== 'x') {
+					dx = s.x;
+				}
+				if (axisLock !== 'y') {
+					dy = s.y;
 				}
 
 				// --------------------------------------------------------------
