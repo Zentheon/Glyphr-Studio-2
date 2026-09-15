@@ -177,41 +177,45 @@ export class Tool_PathEdit {
 				}
 
 				// --------------------------------------------------------------
-				// Snapping
+				// Axis lock
 				// --------------------------------------------------------------
 				if (ehd.isShiftDown) {
-					// Check for point snap to horizontal/vertical
+					// Check for locking to horizontal/vertical
 					if (cpt === 'p' || ehd.isCtrlDown) {
 						const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
 						const base = { x: ehd.initialPoint.baseX, y: ehd.initialPoint.baseY };
 						const ang = calculateAngle(mouse, base);
 						if (isAngleMoreHorizontal(ang)) {
-							// Point is moving more horizontal, snap to mouse y
+							// Point is moving more horizontal, lock to mouse y
 							axisLock = 'y';
 							dx = mouse.x - this.controlPoint.x;
 							dy = ehd.initialPoint.baseY - this.controlPoint.y;
 						} else {
-							// Point is moving more vertical, snap to mouse x
+							// Point is moving more vertical, lock to mouse x
 							axisLock = 'x';
 							dx = ehd.initialPoint.baseX - this.controlPoint.x;
 							dy = mouse.y - this.controlPoint.y;
 						}
 					} else if (typeof ehd.initialPoint?.angle === 'number') {
-						// Check for handle snap to original angle
+						// Check for handle lock to original angle
 						const parentPoint = this.controlPoint.parent.p;
 						if (isAngleMoreHorizontal(ehd.initialPoint.angle)) {
-							// Handle is more horizontal, snap to mouse x
+							// Handle is more horizontal, lock to mouse x
 							const base = this.controlPoint.x - parentPoint.x + dx;
 							const newY = base * Math.tan(ehd.initialPoint.angle) + parentPoint.y;
 							dy = newY - this.controlPoint.y;
 						} else {
-							// Handle is more vertical, snap to mouse y
+							// Handle is more vertical, lock to mouse y
 							const base = this.controlPoint.y - parentPoint.y + dy;
 							const newX = base / Math.tan(ehd.initialPoint.angle) + parentPoint.x;
 							dx = newX - this.controlPoint.x;
 						}
 					}
 				}
+				// --------------------------------------------------------------
+				// Snapping
+				// --------------------------------------------------------------
+
 				// Temporary offsets
 				let s = { x: dx, y: dy };
 				let guides = editor.project.settings.app.guides;
