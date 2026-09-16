@@ -9,7 +9,8 @@ import { makeComponentID } from '../pages/components.js';
 import { makeKernGroupID } from '../pages/kerning.js';
 import { makeLigatureID } from '../pages/ligatures.js';
 import { Glyph } from '../project_data/glyph.js';
-import { Guide } from '../project_editor/guide.js';
+import { Grid } from '../project_editor/grid.js';
+import { Guide, SystemGuides } from '../project_editor/guide.js';
 import { basicLatinOrder, CharacterRange } from './character_range.js';
 import { ComponentInstance } from './component_instance.js';
 import { KernGroup } from './kern_group.js';
@@ -125,6 +126,7 @@ export class GlyphrStudioProject {
 				overlinePosition: 750,
 				overlineThickness: 10,
 			},
+			guides: {},
 		};
 
 		this.glyphs = {};
@@ -186,6 +188,12 @@ export class GlyphrStudioProject {
 			this.settings.app.livePreviews = [];
 			this.settings.app.livePreviews = newPreviews.map((option) => new TextBlockOptions(option));
 		}
+
+		// System guides
+		this.settings.guides.system = new SystemGuides(
+			this.settings.font,
+			this.settings.app.guides.systemShowGuides
+		);
 
 		// log('finished merging settings - result:');
 		// log(this.settings);
