@@ -119,66 +119,49 @@ export function makeSystemGuidesCard() {
 		innerHTML: '<h3>Key metrics guides</h3>',
 	});
 
-	const metrics = getCurrentProject().settings.font;
-	const advanceWidth = getCurrentProjectEditor().selectedItem.advanceWidth;
-	addAsChildren(systemCard, [
-		makeSystemGuideRow('ascent', 'Ascent', metrics.ascent, guideColorMedium),
-		makeSystemGuideRow('capHeight', 'Cap height', metrics.capHeight, guideColorLight),
-		makeSystemGuideRow('xHeight', 'X height', metrics.xHeight, guideColorLight),
-		makeSystemGuideRow('baseline', 'Baseline', '0', guideColorDark),
-		makeSystemGuideRow('descent', 'Descent', metrics.descent, guideColorMedium),
-		makeSystemGuideRow('leftSide', 'Left side', '0', guideColorDark),
-		makeSystemGuideRow('rightSide', 'Right side', advanceWidth, guideColorDark),
-	]);
-	return systemCard;
-}
-
-function makeSystemGuideRow(property, title, value = '0000', color) {
-	const systemGuides = getCurrentProjectEditor().systemGuides;
-
-	// Checkbox
-	const viewCheckbox = makeDirectCheckbox(systemGuides, property, (newValue) => {
-		const editor = getCurrentProjectEditor();
-		let shownGuides = editor.project.settings.app.guides.systemGuides;
-		if (newValue) {
-			if (!shownGuides.includes(property)) {
-				shownGuides.push(property);
-			}
-		} else {
-			if (shownGuides.includes(property)) {
-				shownGuides = shownGuides.filter((g) => g !== property);
-			}
-		}
-		editor.editCanvas.redraw('guides system view toggle');
-	});
-	viewCheckbox.setAttribute('title', 'Show / hide guide');
-	viewCheckbox.setAttribute('style', `accent-color: ${color};`);
-
-	// Angle icon
-	let angleDisplay = makeElement({
-		className: 'guide-system-angle',
-		innerHTML: makeIcon({
-			name: 'command_horizontalBar',
-			color: color,
-		}),
-	});
-	angleDisplay.setAttribute('title', 'Horizontal guideline');
-	if (property === 'leftSide' || property === 'rightSide') {
-		angleDisplay.innerHTML = makeIcon({
-			name: 'command_verticalBar',
-			color: color,
+	const editor = getCurrentProjectEditor();
+	const guides = getCurrentProject().settings.guides.system.getAll(editor.selectedItem);
+	for (let [key, guide] of Object.entries(guides)) {
+		// Checkbox
+		const viewCheckbox = makeDirectCheckbox(guide, 'enabled', (newValue) => {
+			editor.editCanvas.redraw('guides system view toggle');
 		});
-		angleDisplay.setAttribute('title', 'Vertical guideline');
+		viewCheckbox.setAttribute('title', 'Show / hide guide');
+		viewCheckbox.setAttribute('style', `accent-color: ${guide.color};`);
+
+		// Angle icon
+		let angleDisplay = makeElement({
+			className: 'guide-system-angle',
+			innerHTML: makeIcon({
+				name: 'command_horizontalBar',
+				color: guide.color,
+			}),
+		});
+		angleDisplay.setAttribute('title', 'Horizontal guideline');
+		if (guide.angle === 0) {
+			angleDisplay.innerHTML = makeIcon({
+				name: 'command_verticalBar',
+				color: guide.color,
+			});
+			angleDisplay.setAttribute('title', 'Vertical guideline');
+		}
+
+		// Position value
+		const valueDisplay = makeElement({ className: 'guide-system-value', content: guide.position });
+		valueDisplay.setAttribute(
+			'title',
+			`Guide line position\nThese are based on this font's key metrics,\nwhich you can edit on the Font Settings page.`
+		);
+
+		addAsChildren(systemCard, [
+			viewCheckbox,
+			makeSingleLabel(guide.name),
+			angleDisplay,
+			valueDisplay,
+		]);
 	}
 
-	// Value
-	const valueDisplay = makeElement({ className: 'guide-system-value', content: value });
-	valueDisplay.setAttribute(
-		'title',
-		`Guide line position\nThese are based on this font's key metrics,\nwhich you can edit on the Font Settings page.`
-	);
-
-	return [viewCheckbox, makeSingleLabel(title), angleDisplay, valueDisplay];
+	return systemCard;
 }
 
 function makeCustomGuidesCard() {
@@ -203,9 +186,7 @@ function makeCustomGuidesCard() {
 		innerHTML: 'Add a custom guide',
 	});
 	addGuideButton.addEventListener('click', () => {
-		getCurrentProject().settings.app.guides.custom.push(
-			new Guide({ visible: true, color: makeRandomSaturatedColor() })
-		);
+		getCurrentProject().settings.app.guides.custom.push(new Guide());
 		refreshGuideChange();
 	});
 
@@ -215,7 +196,7 @@ function makeCustomGuidesCard() {
 
 function makeCustomGuideRow(guide, number) {
 	// Checkbox
-	const viewCheckbox = makeDirectCheckbox(guide, 'visible', () => {
+	const viewCheckbox = makeDirectCheckbox(guide, 'enabled', () => {
 		const editor = getCurrentProjectEditor();
 		editor.editCanvas.redraw('guides custom view toggle');
 	});
@@ -290,8 +271,8 @@ function makeCustomGuideRow(guide, number) {
 		refreshGuideChange();
 	});
 
-	// Value
-	const valueInput = makeSingleInput(guide, 'location', 'editCanvasView', 'input-number');
+	// Position value
+	const valueInput = makeSingleInput(guide, 'position', 'editCanvasView', 'input-number');
 	valueInput.setAttribute('title', 'Guide line position');
 
 	return [viewCheckbox, nameInput, deleteButton, colorButton, angleButton, valueInput];

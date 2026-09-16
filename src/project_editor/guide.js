@@ -5,17 +5,19 @@
 		custom guides to a Glyphr Studio Project.
 **/
 
+import { makeRandomSaturatedColor } from '../common/colors';
+
 export class Guide {
 	constructor(oa = {}) {
 		// log(`Guide.constructor`, 'start');
 		this.objType = 'Guide';
-		this.angle = oa.angle === 0 ? 0 : 90;
-		this.name = oa.name;
-		this.location = !isNaN(parseInt(oa.location)) ? parseInt(oa.location) : 200;
-		this.snapEnabled = true;
-		this.snapLimit = oa.snapLimit || 25;
-		this.color = oa.color || defaultCustomGuideColor;
-		this.visible = !!oa.visible;
+		this.name = oa?.name ?? null;
+		this.enabled = oa?.enabled ?? true;
+		this.position = !isNaN(parseInt(oa.position)) ? parseInt(oa.position) : 200;
+		this.angle = oa?.angle ?? 90;
+		this.color = oa?.color ?? makeRandomSaturatedColor();
+		this.snapEnabled = oa?.snapEnabled ?? true;
+		this.snapLimit = oa?.snapLimit ?? 25;
 		// log(`Guide.constructor`, 'end');
 	}
 
@@ -28,12 +30,12 @@ export class Guide {
 		let result = { x, y, xWithinLimit: false, yWithinLimit: false };
 		if (this.snapEnabled) {
 			const limit = this.snapLimit / z;
-			if (this.angle === 0 && Math.abs(x - this.location) < limit) {
-				result.x = this.location;
+			if (this.angle === 0 && Math.abs(x - this.position) < limit) {
+				result.x = this.position;
 				result.xWithinLimit = true;
 			}
-			if (this.angle === 90 && Math.abs(y - this.location) < limit) {
-				result.y = this.location;
+			if (this.angle === 90 && Math.abs(y - this.position) < limit) {
+				result.y = this.position;
 				result.yWithinLimit = true;
 			}
 		}
@@ -41,17 +43,18 @@ export class Guide {
 		return result;
 	}
 
-	save() {
+	save(system = false) {
 		let result = {};
 
-		let n = this.name;
-		if (n !== 'Horizontal guide' && n !== 'Vertical guide' && n !== 'Guide') {
-			result.name = this.name;
+		result.enabled = this.enabled;
+		result.name = this.name;
+		result.snapEnabled = this.snapEnabled;
+		result.snapLimit = this.snapLimit;
+		if (!system) {
+			result.position = this.position;
+			result.angle = this.angle;
+			result.color = this.color;
 		}
-		if (this.angle !== 90) result.angle = this.angle;
-		if (this.location !== 200) result.location = this.location;
-		if (this.color !== defaultCustomGuideColor) result.color = this.color;
-		if (!this.visible) result.visible = this.visible;
 
 		return result;
 	}
@@ -76,67 +79,57 @@ export class Guide {
 }
 
 export class SystemGuides {
-	constructor(font = {}, enabled = true) {
+	constructor(font, oa = {}) {
 		// log(`SystemGuides.constructor`, 'start');
 		this.objType = 'SystemGuides';
-		this.snapEnabled = true;
-		this.snapLimit = 25;
-		this.enabled = enabled;
-		this.transparency = 0;
-		this._horizontal = {
-			ascent: new Guide({
-				angle: 90,
-				name: 'Ascent',
-				location: font.ascent,
-				color: guideColorMedium,
-				visible: false,
-			}),
-			capHeight: new Guide({
-				angle: 90,
-				name: 'Cap height',
-				location: font.capHeight,
-				color: guideColorLight,
-				visible: false,
-			}),
-			xHeight: new Guide({
-				angle: 90,
-				name: 'X height',
-				location: font.xHeight,
-				color: guideColorLight,
-				visible: false,
-			}),
-			baseline: new Guide({
-				angle: 90,
-				name: 'Baseline',
-				location: font.baseline,
-				color: guideColorDark,
-				visible: true,
-			}),
-			descent: new Guide({
-				angle: 90,
-				name: 'Descent',
-				location: font.descent,
-				color: guideColorMedium,
-				visible: false,
-			}),
-		};
-		this._vertical = {
-			leftSide: new Guide({
-				angle: 0,
-				name: 'Left side',
-				location: 0,
-				color: guideColorDark,
-				visible: true,
-			}),
-			rightSide: new Guide({
-				angle: 0,
-				name: 'Right side',
-				location: 0,
-				color: guideColorDark,
-				visible: true,
-			}),
-		};
+
+		this.enabled = oa?.enabled ?? true;
+		this.transparency = oa?.transparency ?? 0.5;
+		this.snapEnabled = oa?.snapEnabled ?? true;
+		this.snapLimit = oa?.snapLimit ?? 25;
+		this._horizontal = {};
+		this._vertical = {};
+
+		function initGuide(obj, key, enabled, angle, name, position, color) {
+			let directionKey;
+			directionKey = angle === 90 ? '_horizontal' : '_vertical';
+			obj[directionKey][key] = new Guide({
+				angle: angle,
+				name: oa.guides?.name?.[key]?.name ?? name,
+				position: position,
+				color: color,
+				enabled: oa.guides?.[key]?.enabled ?? enabled,
+				snapEnabled: oa.guides?.[key]?.enabled ?? true,
+				snapLimit: oa.guides?.[key]?.enabled ?? 25,
+			});
+		}
+
+		initGuide(this, 'ascent', false, 90, 'Ascent', font.ascent, guideColorMedium);
+		initGuide(this, 'capHeight', false, 90, 'Cap height', font.capHeight, guideColorLight);
+		initGuide(this, 'xHeight', false, 90, 'X height', font.xHeight, guideColorLight);
+		initGuide(this, 'baseline', true, 90, 'Baseline', font.baseline, guideColorDark);
+		initGuide(this, 'descent', false, 90, 'Descent', font.descent, guideColorMedium);
+		initGuide(this, 'leftSide', true, 0, 'Left side', font.leftSide, guideColorDark);
+		initGuide(this, 'rightSide', true, 0, 'Right side', font.rightSide, guideColorDark);
+
 		// log(`Guide.constructor`, 'end');
+	}
+	save() {
+		let result = {};
+
+		result.enabled = this.enabled;
+		result.transparency = this.transparency;
+		result.snapEnabled = this.snapEnabled;
+		result.snapLimit = this.snapLimit;
+		result.guides = {};
+
+		for (let [key, guide] of Object.entries(this._horizontal)) {
+			result.guides[key] = guide.save(true);
+		}
+		for (let [key, guide] of Object.entries(this._vertical)) {
+			result.guides[key] = guide.save(true);
+		}
+		return result;
 	}
 	setProperty(guide, property, value) {
 		if (this._horizontal[guide]) {
@@ -151,9 +144,12 @@ export class SystemGuides {
 		return this._horizontal;
 	}
 	getVertical(item) {
-		this._vertical.leftSide.location = item.rightSideBearing;
-		this._vertical.rightSide.location = item.rightSideBearing;
+		this._vertical.leftSide.position = item.leftSideBearing;
+		this._vertical.rightSide.position = item.rightSideBearing;
 		return this._vertical;
+	}
+	getAll(item) {
+		return { ...this.getHorizontal(), ...this.getVertical(item) };
 	}
 }
 

@@ -1,10 +1,15 @@
 import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
-import { accentColors, getColorFromRGBA, transparencyToAlpha } from '../common/colors.js';
+import { accentColors, getColorFromRGBA, transparencyToAlpha, uiColors } from '../common/colors.js';
 import { makeElement } from '../common/dom.js';
 import { clone } from '../common/functions.js';
 import { drawGlyph, drawGlyphOutlineMode } from '../display_canvas/draw_paths.js';
 import { kernGroupSideMaxWidth } from '../project_editor/cross_item_actions.js';
-import { gridColor, guideColorDark, guideColorLight, guideColorMedium } from '../project_editor/guide.js';
+import {
+	gridColor,
+	guideColorDark,
+	guideColorLight,
+	guideColorMedium,
+} from '../project_editor/guide.js';
 import { runQualityChecksForItem } from '../project_editor/quality_checks.js';
 import { drawCharacterKernExtra, drawContextCharacters } from './context_characters.js';
 import {
@@ -336,52 +341,18 @@ export class EditCanvas extends HTMLElement {
 			const alpha = transparencyToAlpha(project.settings.app.guides.systemTransparency);
 			const showLabels = project.settings.app.guides.systemShowLabels;
 			// Horizontals
-			let deltaY = 0;
-
-			// capHeight
-			if (editor.systemGuides.capHeight) {
-				// log(`drawing capHeight...`);
-				deltaY = project.settings.font.capHeight;
-				setSystemGuideColor('light', alpha);
-				drawEmHorizontalLine(ctx, deltaY, itemXMax, view);
-				if (showLabels) drawGuideLabel('Cap height', deltaY, true);
-			}
-			// ascent
-			if (editor.systemGuides.ascent) {
-				// log(`drawing ascent...`);
-				deltaY = project.settings.font.ascent;
-				setSystemGuideColor('medium', alpha);
-				drawEmHorizontalLine(ctx, deltaY, itemXMax, view);
-				if (showLabels) drawGuideLabel('Ascent', deltaY, true);
-			}
-			// xHeight
-			if (editor.systemGuides.xHeight) {
-				// log(`drawing xHeight...`);
-				deltaY = project.settings.font.xHeight;
-				setSystemGuideColor('light', alpha);
-				drawEmHorizontalLine(ctx, deltaY, itemXMax, view);
-				if (showLabels) drawGuideLabel('X height', deltaY, true);
-			}
-			// descent
-			if (editor.systemGuides.descent) {
-				// log(`drawing descent...`);
-				deltaY = project.settings.font.descent;
-				setSystemGuideColor('medium', alpha);
-				drawEmHorizontalLine(ctx, deltaY, itemXMax, view);
-				if (showLabels) drawGuideLabel('Descent', deltaY, true);
-			}
-
-			// baseline
-			if (editor.systemGuides.baseline) {
-				// log(`drawing baseline...`);
-				deltaY = 0;
-				setSystemGuideColor('dark', alpha);
-				drawEmHorizontalLine(ctx, deltaY, itemXMax, view);
-				if (showLabels) drawGuideLabel('Baseline', 0, true);
+			let horizontals = project.settings.guides.system.getHorizontal();
+			for (let [key, guide] of Object.entries(horizontals)) {
+				if (guide.enabled) {
+					ctx.fillStyle = getColorFromRGBA(guide.color, alpha);
+					drawEmHorizontalLine(ctx, guide.position, itemXMax, view);
+					if (showLabels) drawGuideLabel(guide.name, guide.position, true);
+				}
 			}
 
 			// Verticals
 			if (drawVerticals) {
+				let verticals = project.settings.guides.system.getVertical(currentItem);
 				/** @type {String | false} */
 				let sbHover = false;
 				if (editor.selectedTool === 'resize') {
@@ -391,45 +362,36 @@ export class EditCanvas extends HTMLElement {
 					}
 				}
 
-				if (editor.systemGuides.leftSide) {
+				if (verticals.leftSide.enabled) {
 					if (sbHover === 'lsb') {
 						const lsbDisplay = Math.round(currentItem.leftSideBearing * 100) / 100;
-						setSystemGuideColor('dark', 0.8);
-						drawGuideLabel(`Left side bearing: ${lsbDisplay}`, 0, false);
+						ctx.fillStyle = uiColors.accent;
+						drawGuideLabel(`${verticals.leftSide.name} bearing: ${lsbDisplay}`, 0, false);
 					} else {
-						setSystemGuideColor('dark', alpha);
+						ctx.fillStyle = getColorFromRGBA(verticals.leftSide.color, alpha);
 					}
 					drawEmVerticalLine(ctx, 0, view, sbHover === 'lsb');
-					if (showLabels) drawGuideLabel('Left side', 0, false);
+					if (showLabels) drawGuideLabel(verticals.leftSide.name, 0, false);
 				}
 
-				if (editor.systemGuides.rightSide && advanceWidth && currentItem.objType !== 'Component') {
+				if (verticals.rightSide.enabled && advanceWidth && currentItem.objType !== 'Component') {
 					if (sbHover === 'rsb') {
 						const rsbDisplay = Math.round(currentItem.rightSideBearing * 100) / 100;
-						setSystemGuideColor('dark', 0.8);
-						drawGuideLabel(`Right side bearing: ${rsbDisplay}`, advanceWidth, false);
+						ctx.fillStyle = uiColors.accent;
+						drawGuideLabel(
+							`${verticals.leftSide.name} bearing: ${rsbDisplay}`,
+							advanceWidth,
+							false
+						);
 					} else {
-						setSystemGuideColor('dark', alpha);
+						ctx.fillStyle = getColorFromRGBA(verticals.leftSide.color, alpha);
 					}
 					drawEmVerticalLine(ctx, advanceWidth, view, sbHover === 'rsb');
-					if (showLabels) drawGuideLabel('Right side', advanceWidth, false);
+					if (showLabels) drawGuideLabel(verticals.leftSide.name, advanceWidth, false);
 				}
 			}
 
 			// log(`drawSystemGuidelines`, 'end');
-		}
-
-		function setSystemGuideColor(level = 'medium', alpha) {
-			let fill;
-			if (level === 'light') {
-				fill = getColorFromRGBA(guideColorLight, alpha);
-			} else if (level === 'medium') {
-				fill = getColorFromRGBA(guideColorMedium, alpha);
-			} else if (level === 'dark') {
-				fill = getColorFromRGBA(guideColorDark, alpha);
-			}
-			// log(`fill: ${fill}`);
-			ctx.fillStyle = fill;
 		}
 
 		function drawCustomGuidelines() {
@@ -438,15 +400,15 @@ export class EditCanvas extends HTMLElement {
 			if (guides.custom) {
 				let alpha = transparencyToAlpha(guides.customTransparency);
 				guides.custom.forEach((guide) => {
-					if (guide.visible) {
+					if (guide.enabled) {
 						let fill = getColorFromRGBA(guide.color, alpha);
 						ctx.fillStyle = fill;
 						if (guide.angle === 90) {
-							drawEmHorizontalLine(ctx, guide.location, itemXMax, view);
-							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.location, true);
+							drawEmHorizontalLine(ctx, guide.position, itemXMax, view);
+							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.position, true);
 						} else {
-							drawEmVerticalLine(ctx, guide.location, view);
-							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.location, false);
+							drawEmVerticalLine(ctx, guide.position, view);
+							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.position, false);
 						}
 					}
 				});
@@ -454,8 +416,7 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawGrid() {
-			const gridSquareSize =
-				editor.project.settings.font.upm / editor.project.settings.app.guides.gridDivisions;
+			const gridSquareSize = editor.project.settings.font.upm / 10;
 			let x0 = Math.floor(cXsX(0) / gridSquareSize) * gridSquareSize;
 			let x1 = Math.ceil(cXsX(width) / gridSquareSize) * gridSquareSize;
 			let y0 = Math.floor(cYsY(height) / gridSquareSize) * gridSquareSize;
@@ -473,17 +434,17 @@ export class EditCanvas extends HTMLElement {
 			}
 		}
 
-		function drawGuideLabel(name, location, isHorizontal) {
+		function drawGuideLabel(name, position, isHorizontal) {
 			let deltaX = 4;
 			let deltaY = -4;
 			let x, y;
 			if (isHorizontal) {
 				x = 5;
-				y = sYcY(location) + deltaY;
-				y = location > 0 ? Math.floor(y) : Math.ceil(y);
+				y = sYcY(position) + deltaY;
+				y = position > 0 ? Math.floor(y) : Math.ceil(y);
 				ctx.fillRect(0, y - deltaY, 60, 1);
 			} else {
-				x = sXcX(location) + deltaX;
+				x = sXcX(position) + deltaX;
 				x = Math.floor(x);
 				y = 12;
 				ctx.fillRect(x - deltaX, 0, 1, 20);

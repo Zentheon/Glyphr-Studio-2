@@ -126,7 +126,21 @@ export class GlyphrStudioProject {
 				overlinePosition: 750,
 				overlineThickness: 10,
 			},
-			guides: {},
+			guides: {
+				system: undefined,
+				custom: {
+					enabled: true,
+					showLabels: false,
+					transparency: 70,
+					guides: [],
+				},
+				grids: {
+					enabled: false,
+					transparency: 90,
+					divisions: 10,
+					snap: false,
+				},
+			},
 		};
 
 		this.glyphs = {};
@@ -192,7 +206,7 @@ export class GlyphrStudioProject {
 		// System guides
 		this.settings.guides.system = new SystemGuides(
 			this.settings.font,
-			this.settings.app.guides.systemShowGuides
+			newProject?.settings?.guides?.system
 		);
 
 		// log('finished merging settings - result:');
@@ -249,6 +263,9 @@ export class GlyphrStudioProject {
 			components: {},
 			kerning: {},
 		};
+
+		// Overwriting guides with .save() version
+		savedProject.settings.guides.system = this.settings.guides.system.save();
 
 		// Overwriting characterRanges with .save() version
 		savedProject.settings.project.characterRanges = [];
