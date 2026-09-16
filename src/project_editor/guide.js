@@ -145,8 +145,7 @@ export class SystemGuides {
 		return this._horizontal;
 	}
 	getVertical(item) {
-		this._vertical.leftSide.position = item.leftSideBearing;
-		this._vertical.rightSide.position = item.rightSideBearing;
+		this._vertical.rightSide.position = item.advanceWidth;
 		return this._vertical;
 	}
 	getAll(item) {

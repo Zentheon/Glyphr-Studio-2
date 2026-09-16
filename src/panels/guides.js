@@ -147,7 +147,10 @@ export function makeSystemGuidesCard() {
 		}
 
 		// Position value
-		const valueDisplay = makeElement({ className: 'guide-system-value', content: guide.position });
+		const valueDisplay = makeElement({
+			className: 'guide-system-value',
+			content: `${guide.position}`,
+		});
 		valueDisplay.setAttribute(
 			'title',
 			`Guide line position\nThese are based on this font's key metrics,\nwhich you can edit on the Font Settings page.`
