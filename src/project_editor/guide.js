@@ -11,7 +11,7 @@ export class Guide {
 	constructor(oa = {}) {
 		// log(`Guide.constructor`, 'start');
 		this.objType = 'Guide';
-		this.name = oa?.name ?? null;
+		this._name = oa?.name ?? null;
 		this.enabled = oa?.enabled ?? true;
 		this.position = !isNaN(parseInt(oa.position)) ? parseInt(oa.position) : 200;
 		this.angle = oa?.angle ?? 90;
@@ -47,7 +47,7 @@ export class Guide {
 		let result = {};
 
 		result.enabled = this.enabled;
-		result.name = this.name;
+		result.name = this._name;
 		result.snapEnabled = this.snapEnabled;
 		result.snapLimit = this.snapLimit;
 		if (!system) {
@@ -84,7 +84,8 @@ export class SystemGuides {
 		this.objType = 'SystemGuides';
 
 		this.enabled = oa?.enabled ?? true;
-		this.transparency = oa?.transparency ?? 0.5;
+		this.showLabels = oa?.showLabels ?? false;
+		this.transparency = oa?.transparency ?? 70;
 		this.snapEnabled = oa?.snapEnabled ?? true;
 		this.snapLimit = oa?.snapLimit ?? 25;
 		this._horizontal = {};
@@ -107,10 +108,10 @@ export class SystemGuides {
 		initGuide(this, 'ascent', false, 90, 'Ascent', font.ascent, guideColorMedium);
 		initGuide(this, 'capHeight', false, 90, 'Cap height', font.capHeight, guideColorLight);
 		initGuide(this, 'xHeight', false, 90, 'X height', font.xHeight, guideColorLight);
-		initGuide(this, 'baseline', true, 90, 'Baseline', font.baseline, guideColorDark);
+		initGuide(this, 'baseline', true, 90, 'Baseline', 0, guideColorDark);
 		initGuide(this, 'descent', false, 90, 'Descent', font.descent, guideColorMedium);
-		initGuide(this, 'leftSide', true, 0, 'Left side', font.leftSide, guideColorDark);
-		initGuide(this, 'rightSide', true, 0, 'Right side', font.rightSide, guideColorDark);
+		initGuide(this, 'leftSide', true, 0, 'Left side', 0, guideColorDark);
+		initGuide(this, 'rightSide', true, 0, 'Right side', 0, guideColorDark);
 
 		// log(`Guide.constructor`, 'end');
 	}

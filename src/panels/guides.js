@@ -23,12 +23,12 @@ export function makePanel_Guides() {
 		className: 'panel__card guides-card__view-options',
 		innerHTML: '<h3>View options</h3>',
 	});
-	const guides = getCurrentProject().settings.app.guides;
-	const showSystem = guides.systemShowGuides;
-	const showCustom = guides.customShowGuides;
-	const showGrid = guides.gridShow;
+	const guides = getCurrentProject().settings.guides;
+	const showSystem = guides.system.enabled;
+	const showCustom = guides.custom.enabled;
+	const showGrid = guides.grids.enabled;
 	addAsChildren(viewOptionsCard, [
-		makeDirectCheckbox(guides, 'drawGuidesOnTop', refreshGuideChange),
+		makeDirectCheckbox(guides, 'drawOnTop', refreshGuideChange),
 		makeElement({
 			tag: 'label',
 			style: 'grid-column: 2 / -1;',
@@ -36,66 +36,66 @@ export function makePanel_Guides() {
 		}),
 	]);
 
-	const systemShowGuidesCheckbox = makeDirectCheckbox(guides, 'systemShowGuides');
-	systemShowGuidesCheckbox.addEventListener('change', () => {
+	const enableSystemGuidesCheckbox = makeDirectCheckbox(guides.system, 'enabled');
+	enableSystemGuidesCheckbox.addEventListener('change', () => {
 		getCurrentProjectEditor().navigate();
 	});
 	addAsChildren(viewOptionsCard, [
-		systemShowGuidesCheckbox,
+		enableSystemGuidesCheckbox,
 		makeElement({ tag: 'h4', content: 'Show: Key metrics guides' }),
 	]);
 	if (showSystem) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
 			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.systemTransparency, (newValue) => {
-				guides.systemTransparency = newValue;
+			makeFancySlider(guides.system.transparency, (newValue) => {
+				guides.system.transparency = newValue;
 				getCurrentProjectEditor().editCanvas.redraw('guides system transparency');
 			}),
 			makeElement(),
 			makeSingleLabel('Show labels'),
-			makeDirectCheckbox(guides, 'systemShowLabels', refreshGuideChange),
+			makeDirectCheckbox(guides.system, 'showLabels', refreshGuideChange),
 			rowPad(),
 		]);
 	}
 
-	const customShowGuidesCheckbox = makeDirectCheckbox(guides, 'customShowGuides');
-	customShowGuidesCheckbox.addEventListener('change', () => {
+	const enableCustomGuidesCheckbox = makeDirectCheckbox(guides.custom, 'enabled');
+	enableCustomGuidesCheckbox.addEventListener('change', () => {
 		getCurrentProjectEditor().navigate();
 	});
 	addAsChildren(viewOptionsCard, [
-		customShowGuidesCheckbox,
+		enableCustomGuidesCheckbox,
 		makeElement({ tag: 'h4', content: 'Show: Custom guides' }),
 	]);
 	if (showCustom) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
 			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.customTransparency, (newValue) => {
-				guides.customTransparency = newValue;
+			makeFancySlider(guides.custom.transparency, (newValue) => {
+				guides.custom.transparency = newValue;
 				getCurrentProjectEditor().editCanvas.redraw('guides custom transparency');
 			}),
 			makeElement(),
 			makeSingleLabel('Show labels'),
-			makeDirectCheckbox(guides, 'customShowLabels', refreshGuideChange),
+			makeDirectCheckbox(guides.custom, 'showLabels', refreshGuideChange),
 			rowPad(),
 		]);
 	}
 
-	const gridShowCheckbox = makeDirectCheckbox(guides, 'gridShow');
-	gridShowCheckbox.addEventListener('change', () => {
+	const enableGridsCheckbox = makeDirectCheckbox(guides.grids, 'enabled');
+	enableGridsCheckbox.addEventListener('change', () => {
 		getCurrentProjectEditor().navigate();
 	});
 	addAsChildren(viewOptionsCard, [
-		gridShowCheckbox,
+		enableGridsCheckbox,
 		makeElement({ tag: 'h4', content: 'Show: Grid' }),
 	]);
 	if (showGrid) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
 			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.gridTransparency, (newValue) => {
-				guides.gridTransparency = newValue;
+			makeFancySlider(guides.grids.transparency, (newValue) => {
+				guides.grids.transparency = newValue;
 				getCurrentProjectEditor().editCanvas.redraw('guides grid transparency');
 			}),
 		]);
@@ -164,16 +164,20 @@ export function makeSystemGuidesCard() {
 	return systemCard;
 }
 
+// --------------------------------------------------------------
+// Custom
+// --------------------------------------------------------------
+
 function makeCustomGuidesCard() {
 	let customCard = makeElement({
 		className: 'panel__card guides-card__custom',
 		innerHTML: '<h3>Custom guides</h3>',
 	});
 
-	const guides = getCurrentProject().settings.app.guides.custom;
+	const custom = getCurrentProject().settings.guides.custom;
 
-	if (guides.length) {
-		guides.forEach((guide, number) => {
+	if (custom.guides.length) {
+		custom.guides.forEach((guide, number) => {
 			addAsChildren(customCard, makeCustomGuideRow(guide, number));
 		});
 
@@ -186,7 +190,7 @@ function makeCustomGuidesCard() {
 		innerHTML: 'Add a custom guide',
 	});
 	addGuideButton.addEventListener('click', () => {
-		getCurrentProject().settings.app.guides.custom.push(new Guide());
+		custom.guides.push(new Guide());
 		refreshGuideChange();
 	});
 
@@ -210,7 +214,7 @@ function makeCustomGuideRow(guide, number) {
 	const deleteButton = makeActionButton({ iconName: 'delete', title: 'Delete guide' });
 	deleteButton.setAttribute('class', 'guide-delete-button');
 	deleteButton.addEventListener('click', () => {
-		const guides = getCurrentProject().settings.app.guides.custom;
+		const guides = getCurrentProject().settings.guides.custom.guides;
 		guides.splice(number, 1);
 		refreshGuideChange();
 	});
@@ -238,7 +242,7 @@ function makeCustomGuideRow(guide, number) {
 		angleButton.querySelector('g').setAttribute('fill', rgbString);
 
 		// Update guide
-		const guide = getCurrentProject().settings.app.guides.custom[number];
+		const guide = getCurrentProject().settings.guides.custom.guides[number];
 		guide.color = rgbString;
 		getCurrentProjectEditor().editCanvas.redraw('guides custom color change');
 	});
@@ -260,7 +264,7 @@ function makeCustomGuideRow(guide, number) {
 		});
 	}
 	angleButton.addEventListener('click', () => {
-		const guide = getCurrentProject().settings.app.guides.custom[number];
+		const guide = getCurrentProject().settings.guides.custom.guides[number];
 		if (guide.angle === 90) {
 			guide.angle = 0;
 			guide.name = guide.name.replace('Horizontal', 'Vertical');
@@ -279,7 +283,7 @@ function makeCustomGuideRow(guide, number) {
 }
 
 function makeGridCard() {
-	const guides = getCurrentProject().settings.app.guides;
+	const grids = getCurrentProject().settings.guides.grids;
 	const gridCard = makeElement({
 		className: 'panel__card guides-card__grid',
 		innerHTML: '<h3>Grid</h3>',
@@ -288,13 +292,11 @@ function makeGridCard() {
 	const gridSquareSize = makeElement({
 		tag: 'code',
 		innerHTML:
-			'' +
-			round(getCurrentProjectEditor().project.settings.font.upm / guides.gridDivisions, 2) +
-			' Em',
+			'' + round(getCurrentProjectEditor().project.settings.font.upm / grids.divisions, 2) + ' Em',
 	});
 	// gridSquareSize.setAttribute('disabled', 'disabled');
 
-	const valueInput = makeSingleInput(guides, 'gridDivisions', 'editCanvasView', 'input-number');
+	const valueInput = makeSingleInput(grids, 'divisions', 'editCanvasView', 'input-number');
 	valueInput.addEventListener('change', () => {
 		gridSquareSize.innerHTML =
 			'' + round(getCurrentProjectEditor().project.settings.font.upm / valueInput.value, 2) + ' Em';
@@ -322,7 +324,7 @@ function makeGridCard() {
 			'Snap path points',
 			'Snap path points to grid intersections when moving or creating points.'
 		),
-		makeDirectCheckbox(guides, 'gridSnap', undefined),
+		makeDirectCheckbox(grids, 'snap', undefined),
 		rowPad(),
 	]);
 	return gridCard;

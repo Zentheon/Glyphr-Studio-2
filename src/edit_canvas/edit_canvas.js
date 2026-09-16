@@ -199,12 +199,12 @@ export class EditCanvas extends HTMLElement {
 			const ehd = eventHandlerData;
 
 			// Guides
-			const guidesSettings = editor.project.settings.app.guides;
-			if (!guidesSettings.drawGuidesOnTop) {
+			const guidesSettings = editor.project.settings.guides;
+			if (!guidesSettings.drawOnTop) {
 				// if (guidesSettings.systemShowGuides) drawSystemGuidelines(!shouldDrawContextCharacters());
-				if (guidesSettings.gridShow) drawGrid();
-				if (guidesSettings.systemShowGuides) drawSystemGuidelines();
-				if (guidesSettings.customShowGuides) drawCustomGuidelines();
+				if (guidesSettings.grids.enabled) drawGrid();
+				if (guidesSettings.system.enabled) drawSystemGuidelines();
+				if (guidesSettings.custom.enabled) drawCustomGuidelines();
 			}
 
 			// Draw glyphs
@@ -253,11 +253,11 @@ export class EditCanvas extends HTMLElement {
 			}
 
 			// Guides (if draw on top)
-			if (guidesSettings.drawGuidesOnTop) {
+			if (guidesSettings.drawOnTop) {
 				// if (guidesSettings.systemShowGuides) drawSystemGuidelines(!shouldDrawContextCharacters());
-				if (guidesSettings.gridShow) drawGrid();
-				if (guidesSettings.systemShowGuides) drawSystemGuidelines();
-				if (guidesSettings.customShowGuides) drawCustomGuidelines();
+				if (guidesSettings.grids.enabled) drawGrid();
+				if (guidesSettings.system.enabled) drawSystemGuidelines();
+				if (guidesSettings.custom.enabled) drawCustomGuidelines();
 			}
 
 			const contextCharacterSettings = editor.project.settings.app.contextCharacters;
@@ -338,8 +338,8 @@ export class EditCanvas extends HTMLElement {
 
 		function drawSystemGuidelines(drawVerticals = true) {
 			// log(`drawSystemGuidelines`, 'start');
-			const alpha = transparencyToAlpha(project.settings.app.guides.systemTransparency);
-			const showLabels = project.settings.app.guides.systemShowLabels;
+			const alpha = transparencyToAlpha(project.settings.guides.system.transparency);
+			const showLabels = project.settings.guides.system.showLabels;
 			// Horizontals
 			let horizontals = project.settings.guides.system.getHorizontal();
 			for (let [key, guide] of Object.entries(horizontals)) {
@@ -395,20 +395,20 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawCustomGuidelines() {
-			const guides = getCurrentProject().settings.app.guides;
+			const custom = getCurrentProject().settings.guides.custom;
 
-			if (guides.custom) {
-				let alpha = transparencyToAlpha(guides.customTransparency);
-				guides.custom.forEach((guide) => {
+			if (custom.enabled) {
+				let alpha = transparencyToAlpha(custom.transparency);
+				custom.guides.forEach((guide) => {
 					if (guide.enabled) {
 						let fill = getColorFromRGBA(guide.color, alpha);
 						ctx.fillStyle = fill;
 						if (guide.angle === 90) {
 							drawEmHorizontalLine(ctx, guide.position, itemXMax, view);
-							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.position, true);
+							if (custom.showLabels) drawGuideLabel(guide.name, guide.position, true);
 						} else {
 							drawEmVerticalLine(ctx, guide.position, view);
-							if (guides.customShowLabels) drawGuideLabel(guide.name, guide.position, false);
+							if (custom.showLabels) drawGuideLabel(guide.name, guide.position, false);
 						}
 					}
 				});
@@ -423,7 +423,7 @@ export class EditCanvas extends HTMLElement {
 			let y1 = Math.ceil(cYsY(0) / gridSquareSize) * gridSquareSize;
 
 			// log(`fill: ${fill}`);
-			let alpha = transparencyToAlpha(editor.project.settings.app.guides.gridTransparency);
+			let alpha = transparencyToAlpha(editor.project.settings.guides.grids.transparency);
 			const fill = getColorFromRGBA(gridColor, alpha);
 			ctx.fillStyle = fill;
 			for (let x = x0; x <= x1; x += gridSquareSize) {
