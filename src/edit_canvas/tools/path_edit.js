@@ -1,7 +1,7 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
 import { refreshPanel } from '../../panels/panels.js';
-import { Grid } from '../../project_editor/grid.js';
+import { Snap } from '../../project_editor/snap.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { isOverControlPoint } from '../detect_edit_affordances.js';
@@ -134,6 +134,11 @@ export class Tool_PathEdit {
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const view = editor.view;
+		const snap = new Snap();
+		snap.point.parent = this.controlPoint.parent;
+		snap.point.x = this.controlPoint.x;
+		snap.point.y = this.controlPoint.y;
+		ehd.ctxType = this.controlPoint.type;
 
 		// An easing function based on quint 'ease-in-out'
 		function calculateWeight(x) {
@@ -163,112 +168,37 @@ export class Tool_PathEdit {
 			// log('Dragging');
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
-			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
-			let axisLock = null;
-			const cpt = this.controlPoint.type;
+			let d = {};
+			d.x = (ehd.mousePosition.x - ehd.lastX) / view.dz;
+			d.y = (ehd.lastY - ehd.mousePosition.y) / view.dz;
+			d.z = view.dz;
+			log(`dx: ${d.x}, dy: ${d.y}, dz: ${d.z}`);
 			if (ehd.isShiftDown) this.setInitialPoint();
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
 
 			if (msPoints.members.length === 1) {
-				if (cpt === 'p') {
+				if (ehd.ctxType === 'p') {
 					this.historyTitle = `Moved path point: ${this.pathPoint.pointNumber}`;
 				}
 
-				// --------------------------------------------------------------
-				// Axis lock
-				// --------------------------------------------------------------
-				if (ehd.isShiftDown) {
-					// Check for locking to horizontal/vertical
-					if (cpt === 'p' || ehd.isCtrlDown) {
-						const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-						const base = { x: ehd.initialPoint.baseX, y: ehd.initialPoint.baseY };
-						const ang = calculateAngle(mouse, base);
-						if (isAngleMoreHorizontal(ang)) {
-							// Point is moving more horizontal, lock to mouse y
-							axisLock = 'y';
-							dx = mouse.x - this.controlPoint.x;
-							dy = ehd.initialPoint.baseY - this.controlPoint.y;
-						} else {
-							// Point is moving more vertical, lock to mouse x
-							axisLock = 'x';
-							dx = ehd.initialPoint.baseX - this.controlPoint.x;
-							dy = mouse.y - this.controlPoint.y;
-						}
-					} else if (typeof ehd.initialPoint?.angle === 'number') {
-						// Check for handle lock to original angle
-						const parentPoint = this.controlPoint.parent.p;
-						if (isAngleMoreHorizontal(ehd.initialPoint.angle)) {
-							// Handle is more horizontal, lock to mouse x
-							const base = this.controlPoint.x - parentPoint.x + dx;
-							const newY = base * Math.tan(ehd.initialPoint.angle) + parentPoint.y;
-							dy = newY - this.controlPoint.y;
-						} else {
-							// Handle is more vertical, lock to mouse y
-							const base = this.controlPoint.y - parentPoint.y + dy;
-							const newX = base / Math.tan(ehd.initialPoint.angle) + parentPoint.x;
-							dx = newX - this.controlPoint.x;
-						}
-					}
-				}
-				// --------------------------------------------------------------
-				// Snapping
-				// --------------------------------------------------------------
-
-				// Temporary offsets
-				let s = { x: dx, y: dy };
-				let guides = editor.project.settings.app.guides;
-				const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-				// System guides
-				if (guides.systemShowGuides) {
-					// impl
-				}
-				// Custom guide snap
-				if (guides.customShowGuides) {
-					let x = mouse.x;
-					let y = mouse.y;
-					for (const guide of Object.values(guides.custom)) {
-						let snapped = guide.snap(mouse.x, mouse.y, view.dz);
-						if (snapped.xWithinLimit) x = snapped.x;
-
-						if (snapped.yWithinLimit) y = snapped.y;
-					}
-					s.x = x - this.controlPoint.x;
-					s.y = y - this.controlPoint.y;
-				}
-
-				// Grid snap
-				if (guides.gridShow && guides.gridSnap && !ehd.isAltDown) {
-					let grid = new Grid();
-					grid.settings.x.size = editor.project.settings.font.upm / 10;
-					grid.settings.y.size = editor.project.settings.font.upm / 10;
-
-					let snapped = grid.snap(mouse.x, mouse.y, view.dz);
-					s.x = snapped.x - this.controlPoint.x;
-					s.y = snapped.y - this.controlPoint.y;
-				}
-
-				if (axisLock !== 'x') {
-					dx = s.x;
-				}
-				if (axisLock !== 'y') {
-					dy = s.y;
-				}
+				log(`nonconv: ${this.controlPoint.x}`);
+				log(`x: ${this.controlPoint.x - cXsX(ehd.mousePosition.x)}`);
+				snap.snap(d, editor, ehd);
 
 				// --------------------------------------------------------------
 				// Locking
 				// --------------------------------------------------------------
-				if (this.controlPoint && this.controlPoint.xLock) dx = 0;
-				if (this.controlPoint && this.controlPoint.yLock) dy = 0;
+				if (this.controlPoint && this.controlPoint.xLock) d.x = 0;
+				if (this.controlPoint && this.controlPoint.yLock) d.y = 0;
 			} else {
-				if (cpt === 'p') {
+				if (ehd.ctxType === 'p') {
 					this.historyTitle = `Moved ${msPoints.members.length} path points`;
 				}
 			}
 
 			// log(`dx: ${dx}, dy: ${dy}`);
-			msPoints.updatePathPointPosition(dx, dy);
+			msPoints.updatePathPointPosition(d.x, d.y);
 
 			ehd.lastX = ehd.mousePosition.x;
 			ehd.lastY = ehd.mousePosition.y;

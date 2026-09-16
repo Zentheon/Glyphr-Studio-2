@@ -45,6 +45,7 @@ export let eventHandlerData = {
 	hoverPoint: {},
 	multi: false,
 	canvasHotspots: [],
+	ctxType: null,
 };
 
 /**
