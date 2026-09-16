@@ -1,3 +1,4 @@
+import { getCurrentProjectEditor } from '../app/main';
 import { calculateAngle } from '../common/functions';
 import { cXsX, cYsY } from '../edit_canvas/edit_canvas';
 import { isAngleMoreHorizontal } from '../edit_canvas/tools/path_edit';
@@ -108,18 +109,24 @@ export class Snap {
 
 		// System guides
 		if (guides.system.enabled) {
-			// impl
+			let item = getCurrentProjectEditor().selectedItem;
+			for (const guide of Object.values(guides.system.getAll(item))) {
+				if (guide.enabled) {
+					let snapped = guide.snap(mouse.x, mouse.y, d.z);
+					if (snapped.xWithinLimit) s.x = snapped.x - this.point.x;
+					if (snapped.yWithinLimit) s.y = snapped.y - this.point.y;
+				}
+			}
 		}
 		// Custom guide snap
 		if (guides.custom.enabled) {
-			for (const guide of Object.values(guides.custom.guides)) {
-				let snapped = guide.snap(mouse.x, mouse.y, d.z);
-				if (snapped.xWithinLimit) s.x = snapped.x - this.point.x;
-
-				if (snapped.yWithinLimit) s.y = snapped.y - this.point.y;
+			for (const guide of guides.custom.guides) {
+				if (guide.enabled) {
+					let snapped = guide.snap(mouse.x, mouse.y, d.z);
+					if (snapped.xWithinLimit) s.x = snapped.x - this.point.x;
+					if (snapped.yWithinLimit) s.y = snapped.y - this.point.y;
+				}
 			}
-			//s.x = x - this.point.x;
-			//s.y = y - this.point.y;
 		}
 
 		log(`axisLock: ${axisLock}`);
