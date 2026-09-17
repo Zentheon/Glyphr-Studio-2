@@ -26,8 +26,8 @@ export class Tool_PathEdit {
 		this.controlPoint = {};
 		this.pathPoint = {};
 		this.historyTitle = 'Path edit tool';
-		/** @type {Object | Boolean} */
-		eventHandlerData.initialPoint = false;
+		/** @type {Object | null} */
+		eventHandlerData.initialPoint = null;
 	}
 
 	mousedown() {
@@ -63,12 +63,13 @@ export class Tool_PathEdit {
 			if (clickDetection.controlPoint === 'h1') this.controlPoint = clickDetection.pathPoint.h1;
 			if (clickDetection.controlPoint === 'h2') this.controlPoint = clickDetection.pathPoint.h2;
 		}
+		this.setInitialPoint();
+		log(`set initial point x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.x}`);
 
 		if (this.controlPoint?.type) {
 			// log('detected CONTROL POINT');
 			this.dragging = true;
 			const isPathPointSelected = msPoints.isSelected(this.pathPoint);
-			if (ehd.isShiftDown) this.setInitialPoint();
 
 			if (this.controlPoint.type === 'p') {
 				// log('detected P');
@@ -173,7 +174,6 @@ export class Tool_PathEdit {
 			d.y = (ehd.lastY - ehd.mousePosition.y) / view.dz;
 			d.z = view.dz;
 			log(`dx: ${d.x}, dy: ${d.y}, dz: ${d.z}`);
-			if (ehd.isShiftDown) this.setInitialPoint();
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
 
@@ -369,7 +369,7 @@ export class Tool_PathEdit {
 		this.controlPoint = false;
 		this.pathPoint = false;
 		this.monitorForDeselect = false;
-		ehd.initialPoint = false;
+		ehd.initialPoint = null;
 		ehd.toolHandoff = false;
 		msPoints.singleHandle = false;
 		ehd.lastX = -100;
@@ -383,19 +383,16 @@ export class Tool_PathEdit {
 
 	setInitialPoint() {
 		const ehd = eventHandlerData;
-		if (ehd.initialPoint !== false) return;
+		if (ehd.initialPoint !== null) return;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
 		ehd.initialPoint = {};
-		if (this.controlPoint.type === 'p') {
-			ehd.initialPoint.angle = 0;
-		} else {
-			const handle = this.controlPoint.parent[this.controlPoint.type];
-			ehd.initialPoint.angle = calculateAngle(handle, handle.parent.p);
-		}
+		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
+		ehd.initialPoint.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;
+
 		ehd.initialPoint.x = this.controlPoint.x;
 		ehd.initialPoint.y = this.controlPoint.y;
-		ehd.initialPoint.baseX = this.controlPoint.parent.p.x;
-		ehd.initialPoint.baseY = this.controlPoint.parent.p.y;
+		ehd.initialPoint.baseX = this.controlPoint?.parent?.p?.x;
+		ehd.initialPoint.baseY = this.controlPoint?.parent?.p?.y;
 		// log(`angle: ${ehd.initialPoint.angle}`);
 		// log(`point: ${ehd.initialPoint.x}, ${ehd.initialPoint.y}`);
 		// log(`base: ${ehd.initialPoint.baseX}, ${ehd.initialPoint.baseY}`);

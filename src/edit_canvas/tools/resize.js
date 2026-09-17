@@ -2,6 +2,7 @@ import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, clone } from '../../common/functions.js';
 import { refreshPanel } from '../../panels/panels.js';
 import { isMaxes } from '../../project_data/maxes.js';
+import { Snap } from '../../project_editor/snap.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
@@ -63,6 +64,7 @@ export class Tool_Resize {
 		this.dragging = false;
 		this.rotating = false;
 		ehd.selecting = false;
+		this.setInitialPoint();
 
 		// log('clickedShape: ' + this.clickedShape);
 		// log('corner: ' + ehd.handle);
@@ -83,7 +85,6 @@ export class Tool_Resize {
 			}
 			setCursor(ehd.handle);
 		} else if (this.clickedShape) {
-			if (ehd.isShiftDown) this.setInitialPoint();
 			if (ehd.isCtrlDown) {
 				if (msShapes.isSelected(this.clickedShape)) {
 					// If we don't drag this shape, then deselect it on mouseup
@@ -121,6 +122,7 @@ export class Tool_Resize {
 		const editor = getCurrentProjectEditor();
 		const view = editor.view;
 		const msShapes = editor.multiSelect.shapes;
+		const snap = new Snap();
 		this.didStuff = false;
 		const corner =
 			ehd.handle || msShapes.isOverBoundingBoxHandle(ehd.mousePosition.x, ehd.mousePosition.y);
@@ -130,20 +132,28 @@ export class Tool_Resize {
 		if (this.dragging) {
 			// log('detected DRAGGING');
 			this.monitorForDeselect = false;
-			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
-			if (ehd.isShiftDown) this.setInitialPoint();
+			let d = {
+				x: (ehd.mousePosition.x - ehd.lastX) / view.dz,
+				y: (ehd.lastY - ehd.mousePosition.y) / view.dz,
+				z: view.dz,
+			};
+			log(`dx: ${d.x}, dy: ${d.y}, dz: ${d.z}`);
+
+			// if (ehd.isShiftDown) this.setInitialPoint();
 
 			if (singlePath) {
-				if (singlePath.xLock) dx = 0;
-				if (singlePath.yLock) dy = 0;
+				if (singlePath.xLock) d.x = 0;
+				if (singlePath.yLock) d.y = 0;
 				this.historyTitle = `Moved shape: ${singlePath.name}`;
 			} else {
 				this.historyTitle = `Moved ${msShapes.members.length} shapes`;
 			}
 
+			snap.maxes = msShapes.maxes;
+			snap.snapBoundingBox(d, editor, ehd);
 			// Snapping
 			if (ehd.isShiftDown) {
+				log(`initial x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.y}`);
 				const mouseSX = cXsX(ehd.mousePosition.x);
 				const mouseSY = cYsY(ehd.mousePosition.y);
 				const mouse = { x: mouseSX, y: mouseSY };
@@ -151,16 +161,16 @@ export class Tool_Resize {
 				const ang = calculateAngle(mouse, firstClick);
 				if (isAngleMoreHorizontal(ang)) {
 					// Point is moving more horizontal, snap to mouse y
-					dx = mouse.x - this.clickedShape.x - (firstClick.x - ehd.initialPoint.shapeX);
-					dy = ehd.initialPoint.shapeY - this.clickedShape.y;
+					d.x = mouse.x - this.clickedShape.x - (firstClick.x - ehd.initialPoint.x);
+					d.y = ehd.initialPoint.y - this.clickedShape.y;
 				} else {
 					// Point is moving more vertical, snap to mouse x
-					dx = ehd.initialPoint.shapeX - this.clickedShape.x;
-					dy = mouse.y - this.clickedShape.y - (firstClick.y - ehd.initialPoint.shapeY);
+					d.x = ehd.initialPoint.x - this.clickedShape.x;
+					d.y = mouse.y - this.clickedShape.y - (firstClick.y - ehd.initialPoint.y);
 				}
 			}
 
-			msShapes.updateShapePosition(dx, dy);
+			msShapes.updateShapePosition(d.x, d.y);
 			this.monitorForDeselect = false;
 			this.didStuff = true;
 		} else if (this.resizing) {
@@ -296,7 +306,7 @@ export class Tool_Resize {
 		this.rotating = false;
 		ehd.selecting = false;
 		this.monitorForDeselect = false;
-		ehd.initialPoint = false;
+		ehd.initialPoint = null;
 		ehd.handle = '';
 		ehd.lastX = -100;
 		ehd.lastY = -100;
@@ -312,12 +322,12 @@ export class Tool_Resize {
 
 	setInitialPoint() {
 		const ehd = eventHandlerData;
-		if (ehd.initialPoint !== false) return;
+		if (ehd.initialPoint !== null) return;
 		// log(`Tool_Resize.setInitialPoint`, 'start');
 		ehd.initialPoint = {};
 		if (this.clickedShape && typeof this.clickedShape === 'object') {
-			ehd.initialPoint.shapeX = this.clickedShape.x;
-			ehd.initialPoint.shapeY = this.clickedShape.y;
+			ehd.initialPoint.x = this.clickedShape.x;
+			ehd.initialPoint.y = this.clickedShape.y;
 			ehd.initialPoint.mouseSX = cXsX(ehd.mousePosition.x);
 			ehd.initialPoint.mouseSY = cYsY(ehd.mousePosition.y);
 		}

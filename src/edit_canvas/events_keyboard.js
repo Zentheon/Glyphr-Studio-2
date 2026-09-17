@@ -614,7 +614,6 @@ function handleSpecialKeys(key, keyDirection) {
 		}
 		if (key === 'Shift') {
 			ehd.isShiftDown = false;
-			eventHandlerData.initialPoint = false;
 			// log(`setting isShiftDown to false`);
 		}
 		if (key === 'Alt') {

@@ -23,7 +23,7 @@ export let eventHandlerData = {
 	selecting: false,
 	mousePosition: {},
 	/** @type {Object | Boolean} */
-	initialPoint: false,
+	initialPoint: null,
 	handle: '',
 	rotationStartCenter: {},
 	rotationStartMaxesTopY: -100,
