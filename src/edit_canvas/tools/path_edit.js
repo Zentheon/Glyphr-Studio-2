@@ -26,8 +26,6 @@ export class Tool_PathEdit {
 		this.controlPoint = {};
 		this.pathPoint = {};
 		this.historyTitle = 'Path edit tool';
-		/** @type {Object | null} */
-		eventHandlerData.initialPoint = null;
 	}
 
 	mousedown() {
@@ -62,9 +60,11 @@ export class Tool_PathEdit {
 			if (clickDetection.controlPoint === 'p') this.controlPoint = clickDetection.pathPoint.p;
 			if (clickDetection.controlPoint === 'h1') this.controlPoint = clickDetection.pathPoint.h1;
 			if (clickDetection.controlPoint === 'h2') this.controlPoint = clickDetection.pathPoint.h2;
+			log(clickDetection);
+			msPoints.setActive(clickDetection.pathPoint, clickDetection.controlPoint);
 		}
 		this.setInitialPoint();
-		log(`set initial point x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.x}`);
+		log(`set initial point x: ${ehd.initial.x}, y: ${ehd.initial.x}`);
 
 		if (this.controlPoint?.type) {
 			// log('detected CONTROL POINT');
@@ -169,11 +169,18 @@ export class Tool_PathEdit {
 			// log('Dragging');
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
-			let d = {};
-			d.x = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			d.y = (ehd.lastY - ehd.mousePosition.y) / view.dz;
-			d.z = view.dz;
+			const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
+			ehd.offset = {
+				x: ehd.initial.mouse.x - mouse.x,
+				y: ehd.initial.mouse.y - mouse.y,
+			};
+			let d = {
+				x: ehd.initial.point.x - ehd.offset.x,
+				y: ehd.initial.point.y - ehd.offset.y,
+				z: view.dz,
+			};
 			log(`dx: ${d.x}, dy: ${d.y}, dz: ${d.z}`);
+			log(`offset: x: ${ehd.offset.x}, y: ${ehd.offset.y}`);
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
 
@@ -198,7 +205,7 @@ export class Tool_PathEdit {
 			}
 
 			// log(`dx: ${dx}, dy: ${dy}`);
-			msPoints.updatePathPointPosition(d.x, d.y);
+			msPoints.setPathPointPosition(d.x, d.y);
 
 			ehd.lastX = ehd.mousePosition.x;
 			ehd.lastY = ehd.mousePosition.y;
@@ -369,7 +376,6 @@ export class Tool_PathEdit {
 		this.controlPoint = false;
 		this.pathPoint = false;
 		this.monitorForDeselect = false;
-		ehd.initialPoint = null;
 		ehd.toolHandoff = false;
 		msPoints.singleHandle = false;
 		ehd.lastX = -100;
@@ -383,16 +389,18 @@ export class Tool_PathEdit {
 
 	setInitialPoint() {
 		const ehd = eventHandlerData;
-		if (ehd.initialPoint !== null) return;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
-		ehd.initialPoint = {};
-		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
-		ehd.initialPoint.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;
+		log(`setting initial point`);
+		ehd.initial.mouse.x = cXsX(ehd.mousePosition.x);
+		ehd.initial.mouse.y = cYsY(ehd.mousePosition.y);
 
-		ehd.initialPoint.x = this.controlPoint.x;
-		ehd.initialPoint.y = this.controlPoint.y;
-		ehd.initialPoint.baseX = this.controlPoint?.parent?.p?.x;
-		ehd.initialPoint.baseY = this.controlPoint?.parent?.p?.y;
+		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
+		ehd.initial.point.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;
+		ehd.initial.point.x = this.controlPoint.x;
+		ehd.initial.point.y = this.controlPoint.y;
+		// ehd.initial.point.baseX = this.controlPoint?.parent?.p?.x;
+		// ehd.initial.point.baseY = this.controlPoint?.parent?.p?.y;
+		//
 		// log(`angle: ${ehd.initialPoint.angle}`);
 		// log(`point: ${ehd.initialPoint.x}, ${ehd.initialPoint.y}`);
 		// log(`base: ${ehd.initialPoint.baseX}, ${ehd.initialPoint.baseY}`);

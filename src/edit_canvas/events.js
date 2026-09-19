@@ -1,5 +1,6 @@
 import { getCurrentProjectEditor } from '../app/main.js';
 import { showToast } from '../controls/dialogs/dialogs.js';
+import { Maxes } from '../project_data/maxes.js';
 import { setCursor, updateCursor } from './cursors.js';
 import { handleDropSVGonEditCanvas } from './events_drag_drop_paste.js';
 import { handleKeyPress, handleKeyUp } from './events_keyboard.js';
@@ -22,8 +23,18 @@ export let eventHandlerData = {
 	newBasicPath: {},
 	selecting: false,
 	mousePosition: {},
-	/** @type {Object | Boolean} */
-	initialPoint: null,
+	initial: {
+		point: {
+			x: 0,
+			y: 0,
+		},
+		mouse: {
+			x: 0,
+			y: 0,
+		},
+		/** @type {Maxes | null} */
+		maxes: null,
+	},
 	handle: '',
 	rotationStartCenter: {},
 	rotationStartMaxesTopY: -100,
