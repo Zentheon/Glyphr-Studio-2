@@ -16,7 +16,6 @@ import { checkForFirstShapeAutoRSB, selectTool } from './tools.js';
  */
 export class Tool_NewPath {
 	constructor() {
-		this.dragging = false;
 		this.firstPoint = true;
 		this.currentPoint = {};
 		/** @type {Path | false} */
@@ -32,8 +31,8 @@ export class Tool_NewPath {
 		// New point
 		// log(`editor.project.settings.font.upm: ${editor.project.settings.font.upm}`);
 		let newPoint = new PathPoint({ projectUPM: editor.project.settings.font.upm });
-		newPoint.p.x = cXsX(ehd.mousePosition.x);
-		newPoint.p.y = cYsY(ehd.mousePosition.y);
+		newPoint.p.x = ehd.current.mouse.s.x;
+		newPoint.p.y = cYsY(ehd.current.mouse.c.y);
 
 		if (eventHandlerData.isShiftDown) newPoint.roundAll(0);
 
@@ -67,18 +66,17 @@ export class Tool_NewPath {
 				this.showDoneCreatingPathButton();
 			}
 		} else if (this.newPath) {
-			if (isOverFirstPoint(this.newPath, cXsX(ehd.mousePosition.x), cYsY(ehd.mousePosition.y))) {
+			if (isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, cYsY(ehd.current.mouse.c.y))) {
 				// clicked on an existing control point in this path
 				// if first point - close the path
 				ehd.toolHandoff = true;
-				editor.eventHandlers.tool_pathEdit.dragging = true;
-				ehd.lastX = ehd.mousePosition.x;
-				ehd.lastY = ehd.mousePosition.y;
+				//editor.eventHandlers.tool_pathEdit.dragging = true;
+				//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+				//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 				msPoints.select(this.newPath.pathPoints[0]);
 				editor.selectedTool = 'pathEdit';
 				editor.publish('whichToolIsSelected', editor.selectedTool);
 
-				this.dragging = false;
 				this.firstPoint = true;
 				this.currentPoint = {};
 				this.newPath = false;
@@ -93,9 +91,8 @@ export class Tool_NewPath {
 		// log(`\n⮟this.currentPoint⮟`);
 		// log(this.currentPoint);
 		this.firstPoint = false;
-		this.dragging = true;
-		ehd.lastX = ehd.mousePosition.x;
-		ehd.lastY = ehd.mousePosition.y;
+		//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+		//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 
 		// log('Tool_NewPath.mousedown', 'end');
 	}
@@ -104,33 +101,32 @@ export class Tool_NewPath {
 		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 
-		if (this.dragging) {
-
-					// log(`\n⮟this.currentPoint⮟`);
-					// log(this.currentPoint);
+		if (ehd.dragging) {
+			// log(`\n⮟this.currentPoint⮟`);
+			// log(this.currentPoint);
 			// avoid really small handles
 			if (
-				Math.abs(sXcX(this.currentPoint.p.x) - ehd.mousePosition.x) > canvasUIPointSize ||
-				Math.abs(sYcY(this.currentPoint.p.y) - ehd.mousePosition.y) > canvasUIPointSize
+				Math.abs(sXcX(this.currentPoint.p.x) - ehd.current.mouse.c.x) > canvasUIPointSize ||
+				Math.abs(sYcY(this.currentPoint.p.y) - ehd.current.mouse.c.y) > canvasUIPointSize
 			) {
 				this.currentPoint.h1.use = true;
 				this.currentPoint.h2.use = true;
-				this.currentPoint.h2.x = cXsX(ehd.mousePosition.x);
-				this.currentPoint.h2.y = cYsY(ehd.mousePosition.y);
+				this.currentPoint.h2.x = ehd.current.mouse.s.x;
+				this.currentPoint.h2.y = cYsY(ehd.current.mouse.c.y);
 				this.currentPoint.makeSymmetric('h2');
 			}
 
 			if (eventHandlerData.isShiftDown) this.currentPoint.roundAll(0);
 
 			setCursor('penCircle');
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 
 			editor.publish('currentPathPoint', this.currentPoint);
 		} else if (
 			this.newPath &&
-			isOverFirstPoint(this.newPath, cXsX(ehd.mousePosition.x), cYsY(ehd.mousePosition.y))
+			isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, cYsY(ehd.current.mouse.c.y))
 		) {
 			setCursor('penSquare');
 		} else {
@@ -154,11 +150,10 @@ export class Tool_NewPath {
 			editor.publish('currentPathPoint', this.currentPoint);
 		}
 
-		this.dragging = false;
 		this.firstPoint = false;
 		this.currentPoint = {};
-		eventHandlerData.lastX = -100;
-		eventHandlerData.lastY = -100;
+		eventHandlerData.last.mouse.c.x = -100;
+		eventHandlerData.last.mouse.c.y = -100;
 		// log('Tool_NewPath.mouseup', 'end');
 	}
 

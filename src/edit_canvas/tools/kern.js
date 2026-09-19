@@ -14,8 +14,8 @@ export class Tool_Kern {
 	}
 
 	mousedown() {
-		// log('Tool_Kern - mouse down: ' + eventHandlerData.mousePosition.x + ':' + eventHandlerData.mousePosition.y);
-		this.deltaX = eventHandlerData.mousePosition.x;
+		// log('Tool_Kern - mouse down: ' + eventHandlerData.current.mouse.c.x + ':' + eventHandlerData.current.mouse.c.y);
+		this.deltaX = eventHandlerData.current.mouse.c.x;
 		this.dragging = true;
 	}
 
@@ -34,11 +34,11 @@ export class Tool_Kern {
 			const editor = getCurrentProjectEditor();
 			let value = 1 * editor.selectedKernGroup.value;
 			let newValue = round(
-				value + (1 * (eventHandlerData.mousePosition.x - this.deltaX)) / editor.view.dz
+				value + (1 * (eventHandlerData.current.mouse.c.x - this.deltaX)) / editor.view.dz
 			);
 			editor.selectedKernGroup.value = newValue;
 			editor.publish('currentKernGroup', editor.selectedKernGroup);
-			this.deltaX = eventHandlerData.mousePosition.x;
+			this.deltaX = eventHandlerData.current.mouse.c.x;
 		}
 	}
 }

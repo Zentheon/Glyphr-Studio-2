@@ -205,9 +205,9 @@ function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
 	let startTopY = ehd.rotationStartMaxesTopY;
 	// log(`startTopY: ${startTopY}`);
 
-	let mx = ehd.mousePosition.x;
+	let mx = ehd.current.mouse.c.x;
 	// log(`mx: ${mx}`);
-	let my = ehd.mousePosition.y;
+	let my = ehd.current.mouse.c.y;
 	// log(`my: ${my}`);
 
 	let radians = calculateAngle({ x: cXsX(mx), y: cYsY(my) }, center);
@@ -764,17 +764,17 @@ export function drawHandles(point, ctx, drawH1 = true, drawH2 = true) {
  * @param {Object} eventHandlerData - event handler data object
  */
 export function computeAndDrawDragToSelectBox(ctx, eventHandlerData) {
-	let mouseX = eventHandlerData.mousePosition.x;
-	let mouseY = eventHandlerData.mousePosition.y;
+	let mouseX = eventHandlerData.current.mouse.c.x;
+	let mouseY = eventHandlerData.current.mouse.c.y;
 
-	mouseX += mouseX < eventHandlerData.firstX ? 1 : 0;
-	mouseY += mouseY < eventHandlerData.firstY ? 1 : 0;
+	mouseX += mouseX < eventHandlerData.initial.mouse.c.x ? 1 : 0;
+	mouseY += mouseY < eventHandlerData.initial.mouse.c.y ? 1 : 0;
 
 	const box = new Maxes({
-		xMin: Math.min(eventHandlerData.firstX, mouseX),
-		xMax: Math.max(eventHandlerData.firstX, mouseX),
-		yMin: Math.min(eventHandlerData.firstY, mouseY),
-		yMax: Math.max(eventHandlerData.firstY, mouseY),
+		xMin: Math.min(eventHandlerData.initial.mouse.c.x, mouseX),
+		xMax: Math.max(eventHandlerData.initial.mouse.c.x, mouseX),
+		yMin: Math.min(eventHandlerData.initial.mouse.c.y, mouseY),
+		yMax: Math.max(eventHandlerData.initial.mouse.c.y, mouseY),
 	});
 
 	// ctx.fillStyle = 'hsla(125, 100%, 36%, 0.05)';

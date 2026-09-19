@@ -1,4 +1,5 @@
 import { getCurrentProjectEditor } from '../app/main.js';
+import { clone } from '../common/functions.js';
 import { closeAllNotations, closeEveryTypeOfDialog } from '../controls/dialogs/dialogs.js';
 import { Maxes, maxesOverlap } from '../project_data/maxes.js';
 import { findAndUnderlineHotspot, isHotspotHere } from './context_characters.js';
@@ -26,12 +27,30 @@ export function handleMouseEvents(event) {
 	// log(`Raw mouse event x/y = ${event.layerX} / ${event.layerY}`);
 	// log(event);
 
-	if (event.type === 'mousedown' && typeof event.button === 'number') closeEveryTypeOfDialog();
-
 	const ehd = eventHandlerData;
 	const editor = getCurrentProjectEditor();
+	const view = editor.view;
 
-	ehd.mousePosition = getMousePositionData(event);
+	ehd.last = clone(ehd.current);
+	ehd.current.mouse.c = getMousePositionData(event);
+	ehd.current.mouse.s = {
+		x: cXsX(ehd.current.mouse.c.x, view),
+		y: cYsY(ehd.current.mouse.c.y, view),
+	};
+	ehd.current.zoom = view.dz;
+
+	if (event.type === 'mousedown') {
+		if (typeof event.button === 'number') closeEveryTypeOfDialog();
+		ehd.initial.mouse = clone(ehd.current.mouse);
+		ehd.dragging = true;
+	} else if (event.type === 'mouseup') {
+		ehd.dragging = false;
+	}
+
+	ehd.current.offset = {
+		x: ehd.initial.mouse.s.x - ehd.current.mouse.s.x,
+		y: ehd.initial.mouse.s.y - ehd.current.mouse.s.y,
+	};
 
 	// Mouse back & forward buttons
 	if (event.button === 3 || event.button === 4) {
@@ -143,10 +162,7 @@ export function clickEmptySpace() {
  */
 
 export function selectItemsInArea(x1, y1, x2, y2, type = 'pathPoints') {
-	x1 = cXsX(x1);
-	y1 = cYsY(y1);
-	x2 = cXsX(x2);
-	y2 = cYsY(y2);
+	log(`selecting, type: ${type}`);
 	const minX = Math.min(x1, x2);
 	const minY = Math.min(y1, y2);
 	const maxX = Math.max(x1, x2);
@@ -207,10 +223,10 @@ export function resizePath() {
 	let resizeCorner = eventHandlerData.handle;
 	// log('handle ' + resizeCorner);
 
-	let mx = cXsX(eventHandlerData.mousePosition.x);
-	let my = cYsY(eventHandlerData.mousePosition.y);
-	let lx = cXsX(eventHandlerData.lastX);
-	let ly = cYsY(eventHandlerData.lastY);
+	let mx = eventHandlerData.current.mouse.s.x;
+	let my = eventHandlerData.current.mouse.s.y;
+	let lx = eventHandlerData.last.mouse.s.x;
+	let ly = eventHandlerData.last.mouse.s.y;
 	let dh = ly - my;
 	let dw = lx - mx;
 	// let rl = selected.virtualGlyph.ratioLock || false;

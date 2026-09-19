@@ -17,11 +17,11 @@ import { getShapeAtLocation, isPointNearShapeEdge } from './tools.js';
  */
 export class Tool_PathEdit {
 	constructor() {
-		this.dragging = false;
+		this.objType = 'Tool_PathEdit';
 		/** @type {Object | Boolean} */
 		this.overCurve = false;
+		this.draggingPoint = false;
 		this.draggingCurve = false;
-		eventHandlerData.selecting = false;
 		this.monitorForDeselect = false;
 		this.controlPoint = {};
 		this.pathPoint = {};
@@ -35,13 +35,13 @@ export class Tool_PathEdit {
 		const msPoints = editor.multiSelect.points;
 		const msShapes = editor.multiSelect.shapes;
 		const view = editor.view;
-		ehd.lastX = ehd.mousePosition.x;
-		ehd.firstX = ehd.mousePosition.x;
-		ehd.lastY = ehd.mousePosition.y;
-		ehd.firstY = ehd.mousePosition.y;
+		// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.initial.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.last.mouse.c.y = ehd.current.mouse.c.y;
+		// ehd.initial.mouse.c.y = ehd.current.mouse.c.y;
 		this.historyTitle = 'Path edit tool';
 
-		const clickedPath = getShapeAtLocation(ehd.mousePosition.x, ehd.mousePosition.y);
+		const clickedPath = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		// log(`getShapeAtLocation:`);
 		// log(clickedPath);
@@ -49,8 +49,8 @@ export class Tool_PathEdit {
 		let checkPoints = ehd.isCtrlDown ? editor.selectedItem : msShapes.allPathPoints;
 		let clickDetection = isOverControlPoint(
 			checkPoints,
-			cXsX(ehd.mousePosition.x, view),
-			cYsY(ehd.mousePosition.y, view)
+			cXsX(ehd.current.mouse.c.x, view),
+			cYsY(ehd.current.mouse.c.y, view)
 		);
 
 		if (clickDetection) {
@@ -62,13 +62,14 @@ export class Tool_PathEdit {
 			if (clickDetection.controlPoint === 'h2') this.controlPoint = clickDetection.pathPoint.h2;
 			log(clickDetection);
 			msPoints.setActive(clickDetection.pathPoint, clickDetection.controlPoint);
+			ehd.ctxType = clickDetection.controlPoint;
 		}
-		this.setInitialPoint();
-		log(`set initial point x: ${ehd.initial.x}, y: ${ehd.initial.x}`);
 
 		if (this.controlPoint?.type) {
 			// log('detected CONTROL POINT');
-			this.dragging = true;
+			this.setInitialPoint();
+			log(`set initial point x: ${ehd.initial.point.x}, y: ${ehd.initial.point.x}`);
+			this.draggingPoint = true;
 			const isPathPointSelected = msPoints.isSelected(this.pathPoint);
 
 			if (this.controlPoint.type === 'p') {
@@ -119,7 +120,7 @@ export class Tool_PathEdit {
 		} else {
 			// log('detected NOTHING');
 			if (!ehd.isCtrlDown) clickEmptySpace();
-			const clickedHotspot = findAndCallHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+			const clickedHotspot = findAndCallHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 			if (!clickedHotspot) ehd.selecting = true;
 			this.overCurve = false;
 			this.draggingCurve = false;
@@ -154,35 +155,33 @@ export class Tool_PathEdit {
 			this.controlPoint = msPoints.singleton.h2;
 
 			this.controlPoint.parent.h2.use = true;
-			this.controlPoint.parent.h2.x = cXsX(ehd.mousePosition.x, view);
-			this.controlPoint.parent.h2.y = cYsY(ehd.mousePosition.y, view);
+			this.controlPoint.parent.h2.x = cXsX(ehd.current.mouse.c.x, view);
+			this.controlPoint.parent.h2.y = cYsY(ehd.current.mouse.c.y, view);
 			msPoints.singleHandle = this.controlPoint.type;
 
 			this.historyTitle = `Added new path: ${this.pathPoint.parent.name}`;
-			this.dragging = true;
+			this.draggingPoint = true;
 
 			// log('toolHandoff this.controlPoint = ');
 			// log(this.controlPoint);
 		}
 
-		if (this.dragging) {
-			// log('Dragging');
+		if (this.draggingPoint) {
+			log('Dragging');
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
-			const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-			ehd.offset = {
-				x: ehd.initial.mouse.x - mouse.x,
-				y: ehd.initial.mouse.y - mouse.y,
+			ehd.current.point = {
+				x: ehd.initial.point.x - ehd.current.offset.x,
+				y: ehd.initial.point.y - ehd.current.offset.y,
 			};
-			let d = {
-				x: ehd.initial.point.x - ehd.offset.x,
-				y: ehd.initial.point.y - ehd.offset.y,
-				z: view.dz,
-			};
-			log(`dx: ${d.x}, dy: ${d.y}, dz: ${d.z}`);
-			log(`offset: x: ${ehd.offset.x}, y: ${ehd.offset.y}`);
+			let newPos = ehd.current.point;
+			log(`dx: ${ehd.current.point.x}, dy: ${ehd.current.point.y}, dz: ${ehd.current.point.z}`);
+			log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
+
+			ehd.current.point = snap.axisLock();
+			ehd.current.point = snap.snapPoint();
 
 			if (msPoints.members.length === 1) {
 				if (ehd.ctxType === 'p') {
@@ -190,14 +189,13 @@ export class Tool_PathEdit {
 				}
 
 				log(`nonconv: ${this.controlPoint.x}`);
-				log(`x: ${this.controlPoint.x - cXsX(ehd.mousePosition.x)}`);
-				snap.snap(d, editor, ehd);
+				log(`x: ${this.controlPoint.x - cXsX(ehd.current.mouse.c.x)}`);
 
 				// --------------------------------------------------------------
 				// Locking
 				// --------------------------------------------------------------
-				if (this.controlPoint && this.controlPoint.xLock) d.x = 0;
-				if (this.controlPoint && this.controlPoint.yLock) d.y = 0;
+				if (this.controlPoint && this.controlPoint.xLock) ehd.current.point.x = 0;
+				if (this.controlPoint && this.controlPoint.yLock) ehd.current.point.y = 0;
 			} else {
 				if (ehd.ctxType === 'p') {
 					this.historyTitle = `Moved ${msPoints.members.length} path points`;
@@ -205,23 +203,24 @@ export class Tool_PathEdit {
 			}
 
 			// log(`dx: ${dx}, dy: ${dy}`);
-			msPoints.setPathPointPosition(d.x, d.y);
+			msPoints.setPathPointPosition(ehd.current.point.x, ehd.current.point.y);
 
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			// ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 			editor.publish(`currentPathPoint`, this.controlPoint.parent);
 			editor.publish('currentItem', editor.selectedItem);
 		} else if (ehd.selecting) {
 			selectItemsInArea(
-				ehd.lastX,
-				ehd.lastY,
-				ehd.mousePosition.x,
-				ehd.mousePosition.y,
+				ehd.initial.mouse.s.x,
+				ehd.initial.mouse.s.y,
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y,
 				'pathPoints'
 			);
 			editor.editCanvas.redraw('pathEdit:mousemove');
 		} else if (this.draggingCurve) {
+			log(`Dragging curve`);
 			// Get the current path and path points
 			const parent = editor.multiSelect.shapes.singleton;
 			const p1 = parent.pathPoints[this.overCurve.point];
@@ -234,8 +233,8 @@ export class Tool_PathEdit {
 			editor.multiSelect.points.add(p2);
 
 			// Make the updates
-			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
+			let dx = (ehd.current.mouse.c.x - ehd.last.mouse.c.x) / view.dz;
+			let dy = (ehd.last.mouse.c.y - ehd.current.mouse.c.y) / view.dz;
 
 			if (!p1.h2.use && !p2.h1.use) {
 				// It's a line segment
@@ -263,8 +262,8 @@ export class Tool_PathEdit {
 			}
 
 			// Finish up
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 			editor.publish(`currentPath`, parent);
 			editor.publish('currentItem', editor.selectedItem);
@@ -274,7 +273,7 @@ export class Tool_PathEdit {
 				this.overCurve = false;
 				let singleShape = editor.multiSelect.shapes.singleton;
 				if (singleShape && singleShape.objType !== 'ComponentInstance') {
-					let mousePoint = eventHandlerData.mousePosition;
+					let mousePoint = eventHandlerData.current.mouse.c;
 					if (isPointNearShapeEdge(singleShape, mousePoint.x, mousePoint.y)) {
 						let curvePoint = singleShape.findClosestPointOnCurve({
 							x: cXsX(mousePoint.x),
@@ -288,7 +287,7 @@ export class Tool_PathEdit {
 			}
 		}
 
-		checkForMouseOverHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+		checkForMouseOverHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		// Figure out cursor
 		let hoverDetection;
@@ -299,8 +298,8 @@ export class Tool_PathEdit {
 
 			hoverDetection = isOverControlPoint(
 				editor.selectedItem,
-				cXsX(ehd.mousePosition.x, view),
-				cYsY(ehd.mousePosition.y, view)
+				cXsX(ehd.current.mouse.c.x, view),
+				cYsY(ehd.current.mouse.c.y, view)
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 
@@ -324,8 +323,8 @@ export class Tool_PathEdit {
 			// Single selection
 			hoverDetection = isOverControlPoint(
 				editor.multiSelect.shapes.allPathPoints,
-				cXsX(ehd.mousePosition.x, view),
-				cYsY(ehd.mousePosition.y, view)
+				cXsX(ehd.current.mouse.c.x, view),
+				cYsY(ehd.current.mouse.c.y, view)
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 			if (hoverDetection.controlPoint === 'p') {
@@ -369,7 +368,7 @@ export class Tool_PathEdit {
 		}
 
 		// set to defaults
-		this.dragging = false;
+		this.draggingPoint = false;
 		this.overCurve = false;
 		this.draggingCurve = false;
 		ehd.selecting = false;
@@ -378,10 +377,10 @@ export class Tool_PathEdit {
 		this.monitorForDeselect = false;
 		ehd.toolHandoff = false;
 		msPoints.singleHandle = false;
-		ehd.lastX = -100;
-		ehd.lastY = -100;
-		ehd.firstX = -100;
-		ehd.firstY = -100;
+		// ehd.last.mouse.c.x = -100;
+		// ehd.last.mouse.c.y = -100;
+		// ehd.initial.mouse.c.x = -100;
+		// ehd.initial.mouse.c.y = -100;
 
 		editor.publish('currentItem', editor.selectedItem);
 		// log('Tool_PathEdit.mouseup', 'end');
@@ -391,8 +390,8 @@ export class Tool_PathEdit {
 		const ehd = eventHandlerData;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
 		log(`setting initial point`);
-		ehd.initial.mouse.x = cXsX(ehd.mousePosition.x);
-		ehd.initial.mouse.y = cYsY(ehd.mousePosition.y);
+		// ehd.initial.mouse.x = cXsX(ehd.current.mouse.c.x);
+		// ehd.initial.mouse.y = cYsY(ehd.current.mouse.c.y);
 
 		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
 		ehd.initial.point.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;

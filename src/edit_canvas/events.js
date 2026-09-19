@@ -22,16 +22,35 @@ export let eventHandlerData = {
 	newBasicPathMaxes: {},
 	newBasicPath: {},
 	selecting: false,
-	mousePosition: {},
+	dragging: false,
+	// mousePosition: {},
 	initial: {
-		point: {
-			x: 0,
-			y: 0,
-		},
+		point: { x: 0, y: 0 },
 		mouse: {
-			x: 0,
-			y: 0,
+			c: { x: 0, y: 0 },
+			s: { x: 0, y: 0 },
 		},
+		zoom: 0,
+		/** @type {Maxes | null} */
+		maxes: null,
+	},
+	last: {
+		point: { x: 0, y: 0 },
+		mouse: {
+			c: { x: 0, y: 0 },
+			s: { x: 0, y: 0 },
+		},
+		zoom: 0,
+		/** @type {Maxes | null} */
+		maxes: null,
+	},
+	current: {
+		point: { x: 0, y: 0 },
+		mouse: {
+			c: { x: 0, y: 0 },
+			s: { x: 0, y: 0 },
+		},
+		zoom: 0,
 		/** @type {Maxes | null} */
 		maxes: null,
 	},
@@ -42,10 +61,6 @@ export let eventHandlerData = {
 	isMouseOverCanvas: false,
 	corner: false,
 	toolHandoff: false,
-	lastX: -100,
-	lastY: -100,
-	firstX: -100,
-	firstY: -100,
 	undoQueueHasChanged: false,
 	lastTool: false,
 	isSpaceDown: false,

@@ -23,7 +23,8 @@ import { getShapeAtLocation, isSideBearingHere } from './tools.js';
  */
 export class Tool_Resize {
 	constructor() {
-		this.dragging = false;
+		this.objType = 'Tool_Resize';
+		// ehd.selecting = false;
 		this.resizing = false;
 		this.rotating = false;
 		/** @type {String | false} */
@@ -41,29 +42,29 @@ export class Tool_Resize {
 
 	mousedown() {
 		// log(`Tool_Resize.mousedown`, 'start');
-		// log('x:y ' + eventHandlerData.mousePosition.x + ':' + eventHandlerData.mousePosition.y);
+		// log('x:y ' + eventHandlerData.current.mouse.c.x + ':' + eventHandlerData.current.mouse.c.y);
 		const editor = getCurrentProjectEditor();
 		const msShapes = editor.multiSelect.shapes;
 		const ehd = eventHandlerData;
 		ehd.handle = '';
-		ehd.lastX = ehd.mousePosition.x;
-		ehd.firstX = ehd.mousePosition.x;
-		ehd.lastY = ehd.mousePosition.y;
-		ehd.firstY = ehd.mousePosition.y;
-		ehd.handle = msShapes.isOverBoundingBoxHandle(ehd.mousePosition.x, ehd.mousePosition.y) || '';
+		// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.initial.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.last.mouse.c.y = ehd.current.mouse.c.y;
+		// ehd.initial.mouse.c.y = ehd.current.mouse.c.y;
+		ehd.handle =
+			msShapes.isOverBoundingBoxHandle(ehd.current.mouse.c.x, ehd.current.mouse.c.y) || '';
 
 		this.didStuff = false;
-		this.clickedShape = getShapeAtLocation(ehd.mousePosition.x, ehd.mousePosition.y);
+		this.clickedShape = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 		this.sideBearingEdit = isSideBearingHere(
-			ehd.mousePosition.x,
-			ehd.mousePosition.y,
+			ehd.current.mouse.c.x,
+			ehd.current.mouse.c.y,
 			editor.selectedItem
 		);
 		this.sideBearingHover = this.sideBearingEdit;
 		this.resizing = false;
-		this.dragging = false;
-		this.rotating = false;
 		ehd.selecting = false;
+		this.rotating = false;
 
 		// log('clickedShape: ' + this.clickedShape);
 		// log('corner: ' + ehd.handle);
@@ -75,14 +76,15 @@ export class Tool_Resize {
 				ehd.rotationStartCenter = clone(msShapes.maxes.center);
 				// log(`center.x: ${ehd.rotationStartCenter.x}`);
 				// log(`center.y: ${ehd.rotationStartCenter.y}`);
-				ehd.rotationStartMaxesTopY = cYsY(ehd.mousePosition.y);
+				ehd.rotationStartMaxesTopY = cYsY(ehd.current.mouse.c.y);
 				// log(`ehd.rotationStartMaxesTopY: ${ehd.rotationStartMaxesTopY}`);
 				this.historyTitle = 'Rotated shape';
 			} else {
-				// log('clicked on ehd.handle: ' + ehd.handle);
+				log('clicked on ehd.handle: ' + ehd.handle);
 				this.resizing = true;
 			}
 			setCursor(ehd.handle);
+			this.setInitialPoint();
 		} else if (this.clickedShape) {
 			if (ehd.isCtrlDown) {
 				if (msShapes.isSelected(this.clickedShape)) {
@@ -105,12 +107,10 @@ export class Tool_Resize {
 			// }
 
 			this.setInitialPoint();
-
-			this.dragging = true;
 		} else {
 			// log('clicked on nothing');
 			if (!ehd.isCtrlDown) clickEmptySpace();
-			const clickedHotspot = findAndCallHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+			const clickedHotspot = findAndCallHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 			if (!clickedHotspot && !this.sideBearingEdit) ehd.selecting = true;
 		}
 		// log(`Tool_Resize.mousedown`, 'end');
@@ -126,62 +126,11 @@ export class Tool_Resize {
 		const snap = new Snap();
 		this.didStuff = false;
 		const corner =
-			ehd.handle || msShapes.isOverBoundingBoxHandle(ehd.mousePosition.x, ehd.mousePosition.y);
+			ehd.handle || msShapes.isOverBoundingBoxHandle(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 		const singlePath = msShapes.singleton;
 
 		// log(`this.sideBearingEdit: ${this.sideBearingEdit}`);
-		if (this.dragging) {
-			// log('detected DRAGGING');
-			this.monitorForDeselect = false;
-
-			// if (ehd.isShiftDown) this.setInitialPoint();
-
-			const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-			ehd.offset = {
-				x: ehd.initial.mouse.x - mouse.x,
-				y: ehd.initial.mouse.y - mouse.y,
-			};
-			let newPos = {
-				x: ehd.initial.point.x - ehd.offset.x,
-				y: ehd.initial.point.y - ehd.offset.y,
-				z: view.dz,
-			};
-			// log(`newPos: x: ${newPos.x}, y: ${newPos.y}, z: ${newPos.z}`);
-			// log(`offset: x: ${ehd.offset.x}, y: ${ehd.offset.y}`);
-
-			if (singlePath) {
-				if (singlePath.xLock) newPos.x = 0;
-				if (singlePath.yLock) newPos.y = 0;
-				this.historyTitle = `Moved shape: ${singlePath.name}`;
-			} else {
-				this.historyTitle = `Moved ${msShapes.members.length} shapes`;
-			}
-
-			snap.shapes = msShapes;
-			snap.snapBoundingBox(newPos, editor, ehd);
-			// Snapping
-			// if (ehd.isShiftDown) {
-			// 	log(`initial x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.y}`);
-			// 	const mouseSX = cXsX(ehd.mousePosition.x);
-			// 	const mouseSY = cYsY(ehd.mousePosition.y);
-			// 	const mouse = { x: mouseSX, y: mouseSY };
-			// 	const firstClick = { x: ehd.initialPoint.mouseSX, y: ehd.initialPoint.mouseSY };
-			// 	const ang = calculateAngle(mouse, firstClick);
-			// 	if (isAngleMoreHorizontal(ang)) {
-			// 		// Point is moving more horizontal, snap to mouse y
-			// 		d.x = mouse.x - this.clickedShape.x - (firstClick.x - ehd.initialPoint.x);
-			// 		d.y = ehd.initialPoint.y - this.clickedShape.y;
-			// 	} else {
-			// 		// Point is moving more vertical, snap to mouse x
-			// 		d.x = ehd.initialPoint.x - this.clickedShape.x;
-			// 		d.y = mouse.y - this.clickedShape.y - (firstClick.y - ehd.initialPoint.y);
-			// 	}
-			// }
-
-			msShapes.setShapePosition(newPos.x, newPos.y);
-			this.monitorForDeselect = false;
-			this.didStuff = true;
-		} else if (this.resizing) {
+		if (this.resizing) {
 			// log('detected RESIZING');
 			resizePath();
 			if (singlePath) {
@@ -192,12 +141,12 @@ export class Tool_Resize {
 			this.didStuff = true;
 		} else if (this.rotating) {
 			// log(`detected ROTATING`);
-			let m = ehd.mousePosition;
+			let m = ehd.current.mouse.c;
 			let center = ehd.rotationStartCenter;
 			// log(`center.x: ${center.x}`);
 			// log(`center.y: ${center.y}`);
 			let a1 = calculateAngle({ x: cXsX(m.x), y: cYsY(m.y) }, center);
-			let a2 = calculateAngle({ x: cXsX(ehd.lastX), y: cYsY(ehd.lastY) }, center);
+			let a2 = calculateAngle({ x: cXsX(ehd.last.mouse.c.x), y: cYsY(ehd.last.mouse.c.y) }, center);
 			msShapes.rotate(a1 - a2, center);
 			if (singlePath) {
 				this.historyTitle = `Rotated shape: ${singlePath.name}`;
@@ -207,7 +156,7 @@ export class Tool_Resize {
 			this.didStuff = true;
 		} else if (this.sideBearingEdit) {
 			// log(`detected SIDEBEARING ${this.sideBearingEdit}`);
-			const dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
+			const dx = (ehd.current.mouse.c.x - ehd.last.mouse.c.x) / view.dz;
 			const item = editor.selectedItem;
 			if (this.sideBearingEdit === 'lsb') {
 				const oldLSB = item.leftSideBearing;
@@ -225,16 +174,69 @@ export class Tool_Resize {
 				this.didStuff = true;
 			}
 		} else if (ehd.selecting) {
-			selectItemsInArea(ehd.lastX, ehd.lastY, ehd.mousePosition.x, ehd.mousePosition.y, 'shapes');
+			selectItemsInArea(
+				ehd.initial.mouse.s.x,
+				ehd.initial.mouse.s.y,
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y,
+				'shapes'
+			);
 			editor.editCanvas.redraw('resize:mousemove');
+		} else if (ehd.dragging) {
+			// log('detected DRAGGING');
+			this.monitorForDeselect = false;
+
+			// if (ehd.isShiftDown) this.setInitialPoint();
+
+			ehd.current.point = {
+				x: ehd.initial.point.x - ehd.current.offset.x,
+				y: ehd.initial.point.y - ehd.current.offset.y,
+			};
+			// let newPos = ehd.current.point;
+			// log(`newPos: x: ${newPos.x}, y: ${newPos.y}, z: ${newPos.z}`);
+			// log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
+
+			if (singlePath) {
+				if (singlePath.xLock) ehd.current.point.x = 0;
+				if (singlePath.yLock) ehd.current.point.y = 0;
+				this.historyTitle = `Moved shape: ${singlePath.name}`;
+			} else {
+				this.historyTitle = `Moved ${msShapes.members.length} shapes`;
+			}
+
+			ehd.current.point = snap.axisLock();
+			ehd.current.point = snap.snapBoundingBox();
+			// newPos = result;
+			// Snapping
+			// if (ehd.isShiftDown) {
+			// 	log(`initial x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.y}`);
+			// 	const mouseSX = cXsX(ehd.current.mouse.c.x);
+			// 	const mouseSY = cYsY(ehd.current.mouse.c.y);
+			// 	const mouse = { x: mouseSX, y: mouseSY };
+			// 	const firstClick = { x: ehd.initialPoint.mouseSX, y: ehd.initialPoint.mouseSY };
+			// 	const ang = calculateAngle(mouse, firstClick);
+			// 	if (isAngleMoreHorizontal(ang)) {
+			// 		// Point is moving more horizontal, snap to mouse y
+			// 		d.x = mouse.x - this.clickedShape.x - (firstClick.x - ehd.initialPoint.x);
+			// 		d.y = ehd.initialPoint.y - this.clickedShape.y;
+			// 	} else {
+			// 		// Point is moving more vertical, snap to mouse x
+			// 		d.x = ehd.initialPoint.x - this.clickedShape.x;
+			// 		d.y = mouse.y - this.clickedShape.y - (firstClick.y - ehd.initialPoint.y);
+			// 	}
+			// }
+
+			msShapes.setShapePosition(ehd.current.point.x, ehd.current.point.y);
+			this.monitorForDeselect = false;
+			this.didStuff = true;
 		}
 
 		// Figure out cursor
-		const hoveredPath = getShapeAtLocation(ehd.mousePosition.x, ehd.mousePosition.y);
+		const hoveredPath = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 		const oldSBH = this.sideBearingHover;
 		this.sideBearingHover = isSideBearingHere(
-			ehd.mousePosition.x,
-			ehd.mousePosition.y,
+			ehd.current.mouse.c.x,
+			ehd.current.mouse.c.y,
 			editor.selectedItem
 		);
 
@@ -242,7 +244,7 @@ export class Tool_Resize {
 			setCursor(corner);
 		} else if (this.rotating) {
 			setCursor('rotate');
-		} else if (this.dragging) {
+		} else if (ehd.selecting) {
 			setCursor('arrowSquare');
 		} else if (ehd.isCtrlDown) {
 			if (hoveredPath) {
@@ -267,12 +269,12 @@ export class Tool_Resize {
 
 		if (oldSBH !== this.sideBearingHover) editor.publish('editCanvasView', editor.selectedItem);
 
-		checkForMouseOverHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+		checkForMouseOverHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		if (this.didStuff) {
 			// log('did stuff');
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 			editor.publish('currentItem', editor.selectedItem);
 		} else {
@@ -290,8 +292,8 @@ export class Tool_Resize {
 		// New Basic Path
 		if (isMaxes(ehd.newBasicPathMaxes)) {
 			ehd.newBasicPathMaxes = false;
-			ehd.lastX = ehd.firstX;
-			ehd.lastY = ehd.firstY;
+			ehd.last.mouse.c.x = ehd.initial.mouse.c.x;
+			ehd.last.mouse.c.y = ehd.initial.mouse.c.y;
 			resizePath();
 		}
 
@@ -307,7 +309,7 @@ export class Tool_Resize {
 		// Finish Up
 		this.clickedShape = null;
 		this.didStuff = false;
-		this.dragging = false;
+		ehd.selecting = false;
 		this.resizing = false;
 		this.sideBearingEdit = false;
 		this.sideBearingHover = false;
@@ -315,10 +317,10 @@ export class Tool_Resize {
 		ehd.selecting = false;
 		this.monitorForDeselect = false;
 		ehd.handle = '';
-		ehd.lastX = -100;
-		ehd.lastY = -100;
-		ehd.firstX = -100;
-		ehd.firstY = -100;
+		// ehd.last.mouse.c.x = -100;
+		// ehd.last.mouse.c.y = -100;
+		// ehd.initial.mouse.c.x = -100;
+		// ehd.initial.mouse.c.y = -100;
 		ehd.rotationStartCenter = false;
 		ehd.rotationStartMaxesTopY = -100;
 		if (ehd.undoQueueHasChanged) editor.history.addState(this.historyTitle);
@@ -329,18 +331,19 @@ export class Tool_Resize {
 
 	setInitialPoint() {
 		const ehd = eventHandlerData;
+		const editor = getCurrentProjectEditor();
 		// log(`Tool_Resize.setInitialPoint`, 'start');
 		if (this.clickedShape && typeof this.clickedShape === 'object') {
 			log(`setting initial point`);
-			ehd.initial.mouse.x = cXsX(ehd.mousePosition.x);
-			ehd.initial.mouse.y = cYsY(ehd.mousePosition.y);
+			// ehd.initial.mouse.x = cXsX(ehd.current.mouse.c.x);
+			// ehd.initial.mouse.y = cYsY(ehd.current.mouse.c.y);
 
-			ehd.initial.point.x = this.clickedShape.x;
-			ehd.initial.point.y = this.clickedShape.y;
+			ehd.initial.point.x = editor.multiSelect.shapes.virtualGlyph.x;
+			ehd.initial.point.y = editor.multiSelect.shapes.virtualGlyph.y;
 
 			ehd.initial.maxes = getCurrentProjectEditor().multiSelect.shapes.maxes;
-			// ehd.initial.mouseSX = cXsX(ehd.mousePosition.x);
-			// ehd.initial.mouseSY = cYsY(ehd.mousePosition.y);
+			// ehd.initial.mouseSX = cXsX(ehd.current.mouse.c.x);
+			// ehd.initial.mouseSY = cYsY(ehd.current.mouse.c.y);
 		}
 
 		// log(`shape: ${ehd.initialPoint.shapeX}, ${ehd.initialPoint.shapeY}`);
