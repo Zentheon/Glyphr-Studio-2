@@ -205,12 +205,7 @@ function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
 	let startTopY = ehd.rotationStartMaxesTopY;
 	// log(`startTopY: ${startTopY}`);
 
-	let mx = ehd.current.mouse.c.x;
-	// log(`mx: ${mx}`);
-	let my = ehd.current.mouse.c.y;
-	// log(`my: ${my}`);
-
-	let radians = calculateAngle({ x: cXsX(mx), y: cYsY(my) }, center);
+	let radians = calculateAngle({ x: ehd.current.mouse.s.x, y: ehd.current.mouse.s.y }, center);
 	// log(`radians: ${radians}`);
 
 	let snap = ehd.isShiftDown;

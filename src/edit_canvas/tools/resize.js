@@ -76,7 +76,7 @@ export class Tool_Resize {
 				ehd.rotationStartCenter = clone(msShapes.maxes.center);
 				// log(`center.x: ${ehd.rotationStartCenter.x}`);
 				// log(`center.y: ${ehd.rotationStartCenter.y}`);
-				ehd.rotationStartMaxesTopY = cYsY(ehd.current.mouse.c.y);
+				ehd.rotationStartMaxesTopY = ehd.current.mouse.s.y;
 				// log(`ehd.rotationStartMaxesTopY: ${ehd.rotationStartMaxesTopY}`);
 				this.historyTitle = 'Rotated shape';
 			} else {
@@ -141,12 +141,11 @@ export class Tool_Resize {
 			this.didStuff = true;
 		} else if (this.rotating) {
 			// log(`detected ROTATING`);
-			let m = ehd.current.mouse.c;
 			let center = ehd.rotationStartCenter;
 			// log(`center.x: ${center.x}`);
 			// log(`center.y: ${center.y}`);
-			let a1 = calculateAngle({ x: cXsX(m.x), y: cYsY(m.y) }, center);
-			let a2 = calculateAngle({ x: cXsX(ehd.last.mouse.c.x), y: cYsY(ehd.last.mouse.c.y) }, center);
+			let a1 = calculateAngle({ x: ehd.current.mouse.s.x, y: ehd.current.mouse.s.y }, center);
+			let a2 = calculateAngle({ x: ehd.last.mouse.s.x, y: ehd.last.mouse.s.y }, center);
 			msShapes.rotate(a1 - a2, center);
 			if (singlePath) {
 				this.historyTitle = `Rotated shape: ${singlePath.name}`;
@@ -210,8 +209,8 @@ export class Tool_Resize {
 			// Snapping
 			// if (ehd.isShiftDown) {
 			// 	log(`initial x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.y}`);
-			// 	const mouseSX = cXsX(ehd.current.mouse.c.x);
-			// 	const mouseSY = cYsY(ehd.current.mouse.c.y);
+			// 	const mouseSX = ehd.current.mouse.s.y;
+			// 	const mouseSY = ehd.current.mouse.s.y;
 			// 	const mouse = { x: mouseSX, y: mouseSY };
 			// 	const firstClick = { x: ehd.initialPoint.mouseSX, y: ehd.initialPoint.mouseSY };
 			// 	const ang = calculateAngle(mouse, firstClick);
@@ -337,15 +336,15 @@ export class Tool_Resize {
 		// log(`Tool_Resize.setInitialPoint`, 'start');
 		if (this.clickedShape && typeof this.clickedShape === 'object') {
 			log(`setting initial point`);
-			// ehd.initial.mouse.x = cXsX(ehd.current.mouse.c.x);
-			// ehd.initial.mouse.y = cYsY(ehd.current.mouse.c.y);
+			// ehd.initial.mouse.x = ehd.current.mouse.s.y;
+			// ehd.initial.mouse.y = ehd.current.mouse.s.y;
 
 			ehd.initial.point.x = editor.multiSelect.shapes.virtualGlyph.x;
 			ehd.initial.point.y = editor.multiSelect.shapes.virtualGlyph.y;
 
 			ehd.initial.maxes = getCurrentProjectEditor().multiSelect.shapes.maxes;
-			// ehd.initial.mouseSX = cXsX(ehd.current.mouse.c.x);
-			// ehd.initial.mouseSY = cYsY(ehd.current.mouse.c.y);
+			// ehd.initial.mouseSX = ehd.current.mouse.s.y;
+			// ehd.initial.mouseSY = ehd.current.mouse.s.y;
 		}
 
 		// log(`shape: ${ehd.initialPoint.shapeX}, ${ehd.initialPoint.shapeY}`);

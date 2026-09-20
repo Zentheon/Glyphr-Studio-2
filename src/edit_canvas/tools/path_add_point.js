@@ -70,10 +70,9 @@ export class Tool_PathAddPoint {
 		const editor = getCurrentProjectEditor();
 		let singlePath = editor.multiSelect.shapes.singleton;
 		if (singlePath) {
-			let mousePoint = eventHandlerData.current.mouse.c;
 			let curvePoint = singlePath.findClosestPointOnCurve({
-				x: cXsX(mousePoint.x),
-				y: cYsY(mousePoint.y),
+				x: eventHandlerData.current.mouse.s.x,
+				y: eventHandlerData.current.mouse.s.y,
 			});
 			if (eventHandlerData.isShiftDown) {
 				curvePoint.x = round(curvePoint.x);

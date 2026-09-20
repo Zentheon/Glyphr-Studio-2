@@ -32,7 +32,7 @@ export class Tool_NewPath {
 		// log(`editor.project.settings.font.upm: ${editor.project.settings.font.upm}`);
 		let newPoint = new PathPoint({ projectUPM: editor.project.settings.font.upm });
 		newPoint.p.x = ehd.current.mouse.s.x;
-		newPoint.p.y = cYsY(ehd.current.mouse.c.y);
+		newPoint.p.y = ehd.current.mouse.s.y;
 
 		if (eventHandlerData.isShiftDown) newPoint.roundAll(0);
 
@@ -66,7 +66,7 @@ export class Tool_NewPath {
 				this.showDoneCreatingPathButton();
 			}
 		} else if (this.newPath) {
-			if (isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, cYsY(ehd.current.mouse.c.y))) {
+			if (isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, ehd.current.mouse.s.y)) {
 				// clicked on an existing control point in this path
 				// if first point - close the path
 				ehd.toolHandoff = true;
@@ -112,7 +112,7 @@ export class Tool_NewPath {
 				this.currentPoint.h1.use = true;
 				this.currentPoint.h2.use = true;
 				this.currentPoint.h2.x = ehd.current.mouse.s.x;
-				this.currentPoint.h2.y = cYsY(ehd.current.mouse.c.y);
+				this.currentPoint.h2.y = ehd.current.mouse.s.y;
 				this.currentPoint.makeSymmetric('h2');
 			}
 
@@ -126,7 +126,7 @@ export class Tool_NewPath {
 			editor.publish('currentPathPoint', this.currentPoint);
 		} else if (
 			this.newPath &&
-			isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, cYsY(ehd.current.mouse.c.y))
+			isOverFirstPoint(this.newPath, ehd.current.mouse.s.x, ehd.current.mouse.s.y)
 		) {
 			setCursor('penSquare');
 		} else {

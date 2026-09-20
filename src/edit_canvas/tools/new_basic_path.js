@@ -22,10 +22,10 @@ export class Tool_NewBasicPath {
 		const editor = getCurrentProjectEditor();
 		const ehd = eventHandlerData;
 		ehd.newBasicPathMaxes = {
-			xMax: cXsX(ehd.current.mouse.c.x),
-			xMin: cXsX(ehd.current.mouse.c.x),
-			yMax: cYsY(ehd.current.mouse.c.y),
-			yMin: cYsY(ehd.current.mouse.c.y),
+			xMax: ehd.current.mouse.s.y,
+			xMin: ehd.current.mouse.s.y,
+			yMax: ehd.current.mouse.s.y,
+			yMin: ehd.current.mouse.s.y,
 		};
 
 		// This is the fake path that shows up in the layers panel
@@ -38,8 +38,8 @@ export class Tool_NewBasicPath {
 			ehd.newBasicPath = rectPathFromMaxes(ehd.newBasicPathMaxes, `New rectangle`);
 		}
 
-		ehd.initial.mouse.c.x = cXsX(ehd.current.mouse.c.x);
-		ehd.initial.mouse.c.y = cYsY(ehd.current.mouse.c.y);
+		ehd.initial.mouse.c.x = ehd.current.mouse.s.y;
+		ehd.initial.mouse.c.y = ehd.current.mouse.s.y;
 		// log(`ehd.initial.mouse.c.x: ${ehd.initial.mouse.c.x}`);
 		// log(`ehd.initial.mouse.c.y: ${ehd.initial.mouse.c.y}`);
 
@@ -55,13 +55,13 @@ export class Tool_NewBasicPath {
 		const editor = getCurrentProjectEditor();
 		const ehd = eventHandlerData;
 		// log(`EHFirst: x ${(ehd.initial.mouse.c.x)}, y ${(ehd.initial.mouse.c.y)}`);
-		// log(`Mouse:   x ${cXsX(ehd.current.mouse.c.x)}, y ${cYsY(ehd.current.mouse.c.y)}`);
+		// log(`Mouse:   x ${ehd.current.mouse.s.y}, y ${ehd.current.mouse.s.y}`);
 		// log(`ehd.newBasicPathMaxes before ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 		if (isMaxes(ehd.newBasicPathMaxes)) {
-			ehd.newBasicPathMaxes.xMax = Math.max(ehd.initial.mouse.c.x, cXsX(ehd.current.mouse.c.x));
-			ehd.newBasicPathMaxes.xMin = Math.min(ehd.initial.mouse.c.x, cXsX(ehd.current.mouse.c.x));
-			ehd.newBasicPathMaxes.yMax = Math.max(ehd.initial.mouse.c.y, cYsY(ehd.current.mouse.c.y));
-			ehd.newBasicPathMaxes.yMin = Math.min(ehd.initial.mouse.c.y, cYsY(ehd.current.mouse.c.y));
+			ehd.newBasicPathMaxes.xMax = Math.max(ehd.initial.mouse.c.x, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.xMin = Math.min(ehd.initial.mouse.c.x, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.yMax = Math.max(ehd.initial.mouse.c.y, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.yMin = Math.min(ehd.initial.mouse.c.y, ehd.current.mouse.s.y);
 			// log(`ehd.newBasicPathMaxes afters ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 
 			if (editor.selectedTool === 'newOval') {

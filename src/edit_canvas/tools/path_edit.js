@@ -49,8 +49,8 @@ export class Tool_PathEdit {
 		let checkPoints = ehd.isCtrlDown ? editor.selectedItem : msShapes.allPathPoints;
 		let clickDetection = isOverControlPoint(
 			checkPoints,
-			cXsX(ehd.current.mouse.c.x, view),
-			cYsY(ehd.current.mouse.c.y, view)
+			ehd.current.mouse.s.x,
+			ehd.current.mouse.s.y
 		);
 
 		if (clickDetection) {
@@ -138,8 +138,6 @@ export class Tool_PathEdit {
 		const view = editor.view;
 		const snap = new Snap();
 		snap.point.parent = this.controlPoint.parent;
-		snap.point.x = this.controlPoint.x;
-		snap.point.y = this.controlPoint.y;
 		ehd.ctxType = this.controlPoint.type;
 
 		// An easing function based on quint 'ease-in-out'
@@ -155,8 +153,8 @@ export class Tool_PathEdit {
 			this.controlPoint = msPoints.singleton.h2;
 
 			this.controlPoint.parent.h2.use = true;
-			this.controlPoint.parent.h2.x = cXsX(ehd.current.mouse.c.x, view);
-			this.controlPoint.parent.h2.y = cYsY(ehd.current.mouse.c.y, view);
+			this.controlPoint.parent.h2.x = ehd.current.mouse.s.x;
+			this.controlPoint.parent.h2.y = ehd.current.mouse.s.y;
 			msPoints.singleHandle = this.controlPoint.type;
 
 			this.historyTitle = `Added new path: ${this.pathPoint.parent.name}`;
@@ -168,14 +166,14 @@ export class Tool_PathEdit {
 
 		if (this.draggingPoint) {
 			log('Dragging');
+			// msPoints.setActive(this.pathPoint, ehd.ctxType);
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
 			ehd.current.point = {
 				x: ehd.initial.point.x - ehd.current.offset.x,
 				y: ehd.initial.point.y - ehd.current.offset.y,
 			};
-			let newPos = ehd.current.point;
-			log(`dx: ${ehd.current.point.x}, dy: ${ehd.current.point.y}, dz: ${ehd.current.point.z}`);
+			log(`new point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
 			log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
@@ -188,9 +186,6 @@ export class Tool_PathEdit {
 					this.historyTitle = `Moved path point: ${this.pathPoint.pointNumber}`;
 				}
 
-				log(`nonconv: ${this.controlPoint.x}`);
-				log(`x: ${this.controlPoint.x - cXsX(ehd.current.mouse.c.x)}`);
-
 				// --------------------------------------------------------------
 				// Locking
 				// --------------------------------------------------------------
@@ -201,6 +196,8 @@ export class Tool_PathEdit {
 					this.historyTitle = `Moved ${msPoints.members.length} path points`;
 				}
 			}
+
+			log(`processed point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
 
 			// log(`dx: ${dx}, dy: ${dy}`);
 			msPoints.setPathPointPosition(ehd.current.point.x, ehd.current.point.y);
@@ -273,11 +270,10 @@ export class Tool_PathEdit {
 				this.overCurve = false;
 				let singleShape = editor.multiSelect.shapes.singleton;
 				if (singleShape && singleShape.objType !== 'ComponentInstance') {
-					let mousePoint = eventHandlerData.current.mouse.c;
-					if (isPointNearShapeEdge(singleShape, mousePoint.x, mousePoint.y)) {
+					if (isPointNearShapeEdge(singleShape, ehd.current.mouse.c.x, ehd.current.mouse.c.y)) {
 						let curvePoint = singleShape.findClosestPointOnCurve({
-							x: cXsX(mousePoint.x),
-							y: cYsY(mousePoint.y),
+							x: ehd.current.mouse.s.x,
+							y: ehd.current.mouse.s.y,
 						});
 						this.overCurve = curvePoint;
 						// log(`\t⮟this.overCurve⮟`);
@@ -298,8 +294,8 @@ export class Tool_PathEdit {
 
 			hoverDetection = isOverControlPoint(
 				editor.selectedItem,
-				cXsX(ehd.current.mouse.c.x, view),
-				cYsY(ehd.current.mouse.c.y, view)
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 
@@ -323,8 +319,8 @@ export class Tool_PathEdit {
 			// Single selection
 			hoverDetection = isOverControlPoint(
 				editor.multiSelect.shapes.allPathPoints,
-				cXsX(ehd.current.mouse.c.x, view),
-				cYsY(ehd.current.mouse.c.y, view)
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 			if (hoverDetection.controlPoint === 'p') {
@@ -390,8 +386,8 @@ export class Tool_PathEdit {
 		const ehd = eventHandlerData;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
 		log(`setting initial point`);
-		// ehd.initial.mouse.x = cXsX(ehd.current.mouse.c.x);
-		// ehd.initial.mouse.y = cYsY(ehd.current.mouse.c.y);
+		// ehd.initial.mouse.x = ehd.current.mouse.s.y;
+		// ehd.initial.mouse.y = ehd.current.mouse.s.y;
 
 		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
 		ehd.initial.point.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;
