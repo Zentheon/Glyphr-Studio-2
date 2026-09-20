@@ -1,7 +1,7 @@
 import { getCurrentProjectEditor } from '../app/main';
 import { calculateAngle } from '../common/functions';
 import { cXsX, cYsY } from '../edit_canvas/edit_canvas';
-import { eventHandlerData } from '../edit_canvas/events';
+import { ehd } from '../edit_canvas/events';
 import { isAngleMoreHorizontal } from '../edit_canvas/tools/path_edit';
 import { panelsEventHandlerData } from '../panels/panel_events';
 import { Maxes } from '../project_data/maxes';
@@ -41,17 +41,17 @@ export class Snap {
 	 * @param {number } x
 	 * @param {number} y
 	 * @param {ProjectEditor} editor - working editor
-	 * @param {object} ehd - event handler data
+	 * @param {object} data - event handler data
 	 */
 	snapPoint(
-		x = eventHandlerData.current.point.x,
-		y = eventHandlerData.current.point.y,
+		x = ehd.current.point.x,
+		y = ehd.current.point.y,
 		editor = getCurrentProjectEditor(),
-		ehd = eventHandlerData
+		data = ehd
 	) {
 		let result = { x, y };
 
-		if (ehd.isAltDown) {
+		if (data.isAltDown) {
 			// No regular snapping while alt is held
 			return result;
 		}
@@ -63,12 +63,12 @@ export class Snap {
 		// Grids
 		// --------------------------------------------------------------
 
-		if (guides.grids.enabled && guides.grids.snap && !ehd.isAltDown) {
+		if (guides.grids.enabled && guides.grids.snap && !data.isAltDown) {
 			let grid = new Grid();
 			grid.settings.x.size = editor.project.settings.font.upm / 10;
 			grid.settings.y.size = editor.project.settings.font.upm / 10;
 
-			let snapped = grid.snap(x, y, ehd.current.zoom);
+			let snapped = grid.snap(x, y, data.current.zoom);
 			tmp.x = snapped.x;
 			tmp.y = snapped.y;
 		}
@@ -82,7 +82,7 @@ export class Snap {
 			let item = getCurrentProjectEditor().selectedItem;
 			for (const guide of Object.values(guides.system.getAll(item))) {
 				if (guide.enabled) {
-					let snapped = guide.snap(x, y, ehd.current.zoom);
+					let snapped = guide.snap(x, y, data.current.zoom);
 					if (snapped.xWithinLimit) tmp.x = snapped.x;
 					if (snapped.yWithinLimit) tmp.y = snapped.y;
 				}
@@ -92,7 +92,7 @@ export class Snap {
 		if (guides.custom.enabled) {
 			for (const guide of guides.custom.guides) {
 				if (guide.enabled) {
-					let snapped = guide.snap(x, y, ehd.current.zoom);
+					let snapped = guide.snap(x, y, data.current.zoom);
 					if (snapped.xWithinLimit) tmp.x = snapped.x;
 					if (snapped.yWithinLimit) tmp.y = snapped.y;
 				}
@@ -107,54 +107,53 @@ export class Snap {
 	}
 	/**
 	 * @param {ProjectEditor} editor - working editor
-	 * @param {object} ehd - event handler data
+	 * @param {object} data - event handler data
 	 */
-	snapBoundingBox(editor = getCurrentProjectEditor(), ehd = eventHandlerData) {
-		let corners = ehd.initial.maxes.corners;
+	snapBoundingBox(editor = getCurrentProjectEditor(), data = ehd) {
+		let corners = data.initial.maxes.corners;
 
-		let bl = { x: corners[0].x - ehd.current.offset.x, y: corners[0].y - ehd.current.offset.y };
+		let bl = { x: corners[0].x - data.current.offset.x, y: corners[0].y - data.current.offset.y };
 		// log(corners);
-		this.point.x = ehd.initial.point.x - ehd.current.offset.x;
-		this.point.y = ehd.initial.point.y - ehd.current.offset.y;
+		this.point.x = data.initial.point.x - data.current.offset.x;
+		this.point.y = data.initial.point.y - data.current.offset.y;
 
-		let result = this.snapPoint(bl.x, bl.y, editor, ehd);
+		let result = this.snapPoint(bl.x, bl.y, editor, data);
 
-		result.x = ehd.current.point.x - (bl.x - result.x);
-		result.y = ehd.current.point.y - (bl.y - result.y);
+		result.x = data.current.point.x - (bl.x - result.x);
+		result.y = data.current.point.y - (bl.y - result.y);
 		return result;
 	}
 	// --------------------------------------------------------------
 	// Axis lock
 	// --------------------------------------------------------------
 	axisLock(
-		x = eventHandlerData.current.point.x,
-		y = eventHandlerData.current.point.y,
+		x = ehd.current.point.x,
+		y = ehd.current.point.y,
 		editor = getCurrentProjectEditor(),
-		ehd = eventHandlerData
+		data = ehd
 	) {
 		let result = { x, y };
 
 		this.lock = { x: false, y: false };
-		const parentPoint = this.point.parent;
-		if (ehd.isShiftDown) {
+		if (data.isShiftDown) {
 			// Check for locking to horizontal/vertical
-			if (!ehd.ctxType?.startsWith('h') || ehd.isCtrlDown) {
-				const base = { x: ehd.initial.point.x, y: ehd.initial.point.y };
+			if (!data.ctxType?.startsWith('h') || data.isCtrlDown) {
+				const base = { x: data.initial.point.x, y: data.initial.point.y };
 				const ang = calculateAngle({ x, y }, base);
 				if (isAngleMoreHorizontal(ang)) {
 					// Point is moving more horizontal, lock to mouse y
 					// log(`locking to y`);
 					this.lock.y = true;
-					result.y = ehd.initial.point.y;
+					result.y = data.initial.point.y;
 				} else {
 					// Point is moving more vertical, lock to mouse x
 					// log(`locking to x`);
 					this.lock.x = true;
-					result.x = ehd.initial.point.x;
+					result.x = data.initial.point.x;
 				}
-			} else if (typeof ehd.initial.point?.angle === 'number') {
+			} else if (typeof data.initial.point?.angle === 'number') {
 				this.lock = { x: true, y: true };
-				let initial = ehd.initial.point;
+				let initial = data.initial.point;
 				log(`Initial point angle: ${initial.angle}`);
 				const ux = Math.cos(initial.angle);
 				const uy = Math.sin(initial.angle);

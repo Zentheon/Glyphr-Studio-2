@@ -6,12 +6,7 @@ import { findAndUnderlineHotspot, isHotspotHere } from './context_characters.js'
 import { setCursor } from './cursors.js';
 import { canvasUIPointSize } from './draw_edit_affordances.js';
 import { cXsX, cYsY } from './edit_canvas.js';
-import {
-	cancelDefaultEventActions,
-	eventHandlerData,
-	togglePanOff,
-	togglePanOn,
-} from './events.js';
+import { ehd } from './events.js';
 
 // --------------------------------------------------------------
 // Mouse Events
@@ -27,7 +22,6 @@ export function handleMouseEvents(event) {
 	// log(`Raw mouse event x/y = ${event.layerX} / ${event.layerY}`);
 	// log(event);
 
-	const ehd = eventHandlerData;
 	const editor = getCurrentProjectEditor();
 	const view = editor.view;
 
@@ -55,7 +49,7 @@ export function handleMouseEvents(event) {
 	// Mouse back & forward buttons
 	if (event.button === 3 || event.button === 4) {
 		// Don't navigate
-		cancelDefaultEventActions(event);
+		ehd.cancelDefaultEventActions(event);
 		return;
 	}
 
@@ -67,10 +61,10 @@ export function handleMouseEvents(event) {
 	// Mouse wheel-click
 	if (event.button === 1) {
 		if (event.type === 'mousedown') {
-			togglePanOn(event);
+			ehd.togglePanOn(event);
 		}
 		if (event.type === 'mouseup') {
-			togglePanOff(event);
+			ehd.togglePanOff(event);
 		}
 		// return;
 	}
@@ -172,7 +166,7 @@ export function selectItemsInArea(x1, y1, x2, y2, type = 'pathPoints') {
 	let shouldPublish = true;
 	const msPoints = editor.multiSelect.points;
 	const msShapes = editor.multiSelect.shapes;
-	const isCtrlDown = eventHandlerData.isCtrlDown;
+	const isCtrlDown = ehd.isCtrlDown;
 
 	if (type === 'pathPoints') {
 		msPoints.allowPublishing = false;
@@ -220,17 +214,17 @@ export function resizePath() {
 	const editor = getCurrentProjectEditor();
 	let selected = editor.multiSelect.shapes;
 	// log(selected);
-	let resizeCorner = eventHandlerData.handle;
+	let resizeCorner = ehd.handle;
 	// log('handle ' + resizeCorner);
 
-	let mx = eventHandlerData.current.mouse.s.x;
-	let my = eventHandlerData.current.mouse.s.y;
-	let lx = eventHandlerData.last.mouse.s.x;
-	let ly = eventHandlerData.last.mouse.s.y;
+	let mx = ehd.current.mouse.s.x;
+	let my = ehd.current.mouse.s.y;
+	let lx = ehd.last.mouse.s.x;
+	let ly = ehd.last.mouse.s.y;
 	let dh = ly - my;
 	let dw = lx - mx;
 	// let rl = selected.virtualGlyph.ratioLock || false;
-	let rl = selected.ratioLock || eventHandlerData.isShiftDown;
+	let rl = selected.ratioLock || ehd.isShiftDown;
 
 	// Check that the path won't have negative dimensions
 	let maxes = selected.maxes;
@@ -402,12 +396,11 @@ export function checkForMouseOverHotspot(x, y) {
 	if (isHotspotHere(x, y)) {
 		let hs = findAndUnderlineHotspot(x, y);
 		setCursor('pointer');
-		if (hs !== eventHandlerData.canvasHotspotHovering)
-			editor.publish('editCanvasView', editor.view);
-		eventHandlerData.canvasHotspotHovering = hs;
+		if (hs !== ehd.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
+		ehd.canvasHotspotHovering = hs;
 	} else {
-		if (eventHandlerData.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
-		eventHandlerData.canvasHotspotHovering = false;
+		if (ehd.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
+		ehd.canvasHotspotHovering = false;
 	}
 }
 
@@ -492,9 +485,9 @@ export function handleMouseWheel(event) {
 
 	if (canZoom) {
 		if (event.ctrlKey || event.metaKey) {
-			cancelDefaultEventActions(event);
+			ehd.cancelDefaultEventActions(event);
 			closeAllNotations();
-			eventHandlerData.hoverPoint = false;
+			ehd.hoverPoint = false;
 			// log('MOUSEWHEEL: canZoom=true and delta=' + delta );
 			if (delta > 0) {
 				editor.updateViewZoom(1.1, mouse);

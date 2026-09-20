@@ -7,7 +7,7 @@ import { Path } from '../../project_data/path.js';
 import { PathPoint } from '../../project_data/path_point.js';
 import { canvasUIPointSize } from '../draw_edit_affordances.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { addPathToCurrentItem, switchToolTo } from './tools.js';
 
 /**
@@ -20,7 +20,6 @@ export class Tool_NewBasicPath {
 	mousedown() {
 		// log(`Tool_NewBasicPath.mousedown`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 		ehd.newBasicPathMaxes = {
 			xMax: ehd.current.mouse.s.y,
 			xMin: ehd.current.mouse.s.y,
@@ -53,7 +52,6 @@ export class Tool_NewBasicPath {
 	mousemove() {
 		// log(`Tool_NewBasicPath.mousemove`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 		// log(`EHFirst: x ${(ehd.initial.mouse.c.x)}, y ${(ehd.initial.mouse.c.y)}`);
 		// log(`Mouse:   x ${ehd.current.mouse.s.y}, y ${ehd.current.mouse.s.y}`);
 		// log(`ehd.newBasicPathMaxes before ${JSON.stringify(ehd.newBasicPathMaxes)}`);
@@ -82,7 +80,6 @@ export class Tool_NewBasicPath {
 	mouseup() {
 		// log(`Tool_NewBasicPath.mouseup`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 
 		// Only make the new path if it's not really small
 		let xSize = Math.abs(ehd.newBasicPathMaxes.xMax - ehd.newBasicPathMaxes.xMin);

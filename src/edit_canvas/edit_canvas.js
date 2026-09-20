@@ -24,7 +24,7 @@ import {
 	drawPathPointHover,
 	drawSelectedPathOutline,
 } from './draw_edit_affordances.js';
-import { cancelDefaultEventActions, eventHandlerData, initEventHandlers } from './events.js';
+import { ehd } from './events.js';
 import { handlePasteSVGonEditCanvas } from './events_drag_drop_paste.js';
 
 /**
@@ -91,7 +91,7 @@ export class EditCanvas extends HTMLElement {
 			'keydown',
 			'keyup',
 		].forEach((eventName) => {
-			this.canvas.addEventListener(eventName, cancelDefaultEventActions);
+			this.canvas.addEventListener(eventName, ehd.cancelDefaultEventActions);
 		});
 
 		const styles = makeElement({
@@ -115,7 +115,7 @@ export class EditCanvas extends HTMLElement {
 		});
 		shadow.appendChild(styles);
 
-		initEventHandlers(this.canvas);
+		ehd.initEventHandlers(this.canvas);
 		editor.editCanvas = this;
 
 		// Set up Subscriptions
@@ -196,7 +196,6 @@ export class EditCanvas extends HTMLElement {
 			// log(`EditCanvas.redrawGlyphEdit`, 'start');
 			editor.autoFitIfViewIsDefault();
 			ctx.clearRect(0, 0, width, height);
-			const ehd = eventHandlerData;
 
 			// Guides
 			const guidesSettings = editor.project.settings.guides;
@@ -248,7 +247,7 @@ export class EditCanvas extends HTMLElement {
 			}
 
 			// Draw temporary new paths
-			if (eventHandlerData?.newBasicPath?.objType) {
+			if (ehd?.newBasicPath?.objType) {
 				drawNewBasicPath(ctx, ehd.newBasicPath, view);
 			}
 
@@ -271,7 +270,7 @@ export class EditCanvas extends HTMLElement {
 
 			// Drag to select box
 			if (ehd.selecting) {
-				computeAndDrawDragToSelectBox(ctx, eventHandlerData);
+				computeAndDrawDragToSelectBox(ctx, ehd);
 			}
 			// log(`EditCanvas.redrawGlyphEdit`, 'end');
 		}
@@ -338,7 +337,6 @@ export class EditCanvas extends HTMLElement {
 
 		function drawSystemGuidelines(drawVerticals = true) {
 			// log(`drawSystemGuidelines`, 'start');
-			const ehd = eventHandlerData;
 			const alpha = transparencyToAlpha(project.settings.guides.system.transparency);
 			const showLabels = project.settings.guides.system.showLabels;
 			// Horizontals

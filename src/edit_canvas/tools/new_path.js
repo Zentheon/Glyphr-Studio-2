@@ -6,7 +6,7 @@ import { setCursor } from '../cursors.js';
 import { isOverFirstPoint } from '../detect_edit_affordances.js';
 import { canvasUIPointSize } from '../draw_edit_affordances.js';
 import { cXsX, cYsY, sXcX, sYcY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { checkForFirstShapeAutoRSB, selectTool } from './tools.js';
 
 /**
@@ -24,7 +24,6 @@ export class Tool_NewPath {
 	mousedown() {
 		// log('Tool_NewPath.mousedown', 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 		const msShapes = editor.multiSelect.shapes;
 		const msPoints = editor.multiSelect.points;
 
@@ -34,7 +33,7 @@ export class Tool_NewPath {
 		newPoint.p.x = ehd.current.mouse.s.x;
 		newPoint.p.y = ehd.current.mouse.s.y;
 
-		if (eventHandlerData.isShiftDown) newPoint.roundAll(0);
+		if (ehd.isShiftDown) newPoint.roundAll(0);
 
 		// Ensure selection
 		if (this.newPath) {
@@ -98,7 +97,6 @@ export class Tool_NewPath {
 	}
 
 	mousemove() {
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 
 		if (ehd.dragging) {
@@ -116,7 +114,7 @@ export class Tool_NewPath {
 				this.currentPoint.makeSymmetric('h2');
 			}
 
-			if (eventHandlerData.isShiftDown) this.currentPoint.roundAll(0);
+			if (ehd.isShiftDown) this.currentPoint.roundAll(0);
 
 			setCursor('penCircle');
 			//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
@@ -139,21 +137,21 @@ export class Tool_NewPath {
 		const editor = getCurrentProjectEditor();
 		setCursor('penPlus');
 
-		if (eventHandlerData.undoQueueHasChanged) {
+		if (ehd.undoQueueHasChanged) {
 			// For new path tools, mouse up always adds to the undo-queue
 			editor.history.addState(`New path: added point ${this.currentPoint.pointNumber}`);
-			eventHandlerData.undoQueueHasChanged = false;
+			ehd.undoQueueHasChanged = false;
 		}
 
-		if (eventHandlerData.isShiftDown) {
+		if (ehd.isShiftDown) {
 			this.currentPoint.roundAll(0);
 			editor.publish('currentPathPoint', this.currentPoint);
 		}
 
 		this.firstPoint = false;
 		this.currentPoint = {};
-		eventHandlerData.last.mouse.c.x = -100;
-		eventHandlerData.last.mouse.c.y = -100;
+		ehd.last.mouse.c.x = -100;
+		ehd.last.mouse.c.y = -100;
 		// log('Tool_NewPath.mouseup', 'end');
 	}
 

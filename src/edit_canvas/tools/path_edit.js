@@ -6,7 +6,7 @@ import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { isOverControlPoint } from '../detect_edit_affordances.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { checkForMouseOverHotspot, clickEmptySpace, selectItemsInArea } from '../events_mouse.js';
 import { getShapeAtLocation, isPointNearShapeEdge } from './tools.js';
 
@@ -30,7 +30,6 @@ export class Tool_PathEdit {
 
 	mousedown() {
 		// log('Tool_PathEdit.mousedown', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const msShapes = editor.multiSelect.shapes;
@@ -132,7 +131,6 @@ export class Tool_PathEdit {
 
 	mousemove() {
 		// log('Tool_PathEdit.mousemove', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const view = editor.view;
@@ -343,7 +341,6 @@ export class Tool_PathEdit {
 
 	mouseup() {
 		// log('Tool_PathEdit.mouseup', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		// const msShapes = editor.multiSelect.shapes;
@@ -383,7 +380,6 @@ export class Tool_PathEdit {
 	}
 
 	setInitialPoint() {
-		const ehd = eventHandlerData;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
 		log(`setting initial point`);
 		// ehd.initial.mouse.x = ehd.current.mouse.s.y;

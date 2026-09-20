@@ -6,7 +6,7 @@ import { Snap } from '../../project_editor/snap.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import {
 	checkForMouseOverHotspot,
 	clickEmptySpace,
@@ -31,13 +31,13 @@ export class Tool_Resize {
 		this.sideBearingEdit = false;
 		/** @type {String | false} */
 		this.sideBearingHover = false;
-		eventHandlerData.selecting = false;
+		ehd.selecting = false;
 		this.monitorForDeselect = false;
 		this.didStuff = false;
 		/** @type {Object | null} */
 		this.clickedShape = null;
 		this.historyTitle = 'Path resize tool';
-		eventHandlerData.handle = '';
+		ehd.handle = '';
 	}
 
 	mousedown() {
@@ -45,7 +45,6 @@ export class Tool_Resize {
 		// log('x:y ' + eventHandlerData.current.mouse.c.x + ':' + eventHandlerData.current.mouse.c.y);
 		const editor = getCurrentProjectEditor();
 		const msShapes = editor.multiSelect.shapes;
-		const ehd = eventHandlerData;
 		ehd.handle = '';
 		// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
 		// ehd.initial.mouse.c.x = ehd.current.mouse.c.x;
@@ -119,7 +118,6 @@ export class Tool_Resize {
 	mousemove() {
 		// log(`Tool_Resize.mousemove`, 'start');
 
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const view = editor.view;
 		const msShapes = editor.multiSelect.shapes;
@@ -287,7 +285,6 @@ export class Tool_Resize {
 
 	mouseup() {
 		// log(`Tool_Resize.mouseup`, 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 
 		// New Basic Path
@@ -331,7 +328,6 @@ export class Tool_Resize {
 	}
 
 	setInitialPoint() {
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		// log(`Tool_Resize.setInitialPoint`, 'start');
 		if (this.clickedShape && typeof this.clickedShape === 'object') {

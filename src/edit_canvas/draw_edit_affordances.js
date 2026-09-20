@@ -16,7 +16,7 @@ import { Path } from '../project_data/path.js';
 import { PathPoint } from '../project_data/path_point.js';
 import { enabledQualityChecks } from '../project_editor/quality_checks.js';
 import { cXsX, cYsY, sXcX, sYcY } from './edit_canvas.js';
-import { eventHandlerData } from './events.js';
+import { ehd } from './events.js';
 import { canResize } from './events_mouse.js';
 
 // --------------------------------------------------------------
@@ -194,7 +194,6 @@ function drawBoundingBoxHandles(ctx, maxes, thickness, accent) {
 function drawRotationAffordance(ctx, accent = accentBlue, thickness = 1) {
 	// log(`drawRotationAffordance`, 'start');
 	// const editor = getCurrentProjectEditor();
-	const ehd = eventHandlerData;
 	// log(`accent: ${accent}`);
 	// log(`thickness: ${thickness}`);
 

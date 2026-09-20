@@ -1,5 +1,5 @@
 import { getCurrentProjectEditor } from '../app/main.js';
-import { eventHandlerData } from './events.js';
+import { ehd } from './events.js';
 import { canResize } from './events_mouse.js';
 
 /**
@@ -14,7 +14,7 @@ export function updateCursor(tool) {
 
 	// log('tool = ' + tool);
 
-	if (eventHandlerData.isMouseOverCanvas) {
+	if (ehd.isMouseOverCanvas) {
 		if (tool === 'newRectangle') {
 			// log('setting cursor to crosshairSquare');
 			setCursor('crosshairSquare');

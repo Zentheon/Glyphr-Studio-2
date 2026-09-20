@@ -1,6 +1,6 @@
 import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
 import { addAsChildren, makeElement } from '../common/dom.js';
-import { eventHandlerData } from '../edit_canvas/events.js';
+import { ehd } from '../edit_canvas/events.js';
 import { addChildActions, getActionData } from './actions.js';
 import { makeCard_itemNavigation } from './card_glyph.js';
 import { panelsEventHandlerData } from './panel_events.js';
@@ -21,9 +21,9 @@ export function makePanel_Layers() {
 	// log(`\n⮟eventHandlerData⮟`);
 	// log(eventHandlerData);
 
-	if (eventHandlerData?.newBasicPath?.objType) {
+	if (ehd?.newBasicPath?.objType) {
 		// log(`Handling new basic path`);
-		let path = eventHandlerData.newBasicPath;
+		let path = ehd.newBasicPath;
 		let row = makeElement();
 		row.setAttribute('class', 'item-link__row layer-panel__new-path');
 		row.classList.add('layer-panel__selected');
