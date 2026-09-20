@@ -60,8 +60,6 @@ export class Tool_PathEdit {
 			if (clickDetection.controlPoint === 'p') this.controlPoint = clickDetection.pathPoint.p;
 			if (clickDetection.controlPoint === 'h1') this.controlPoint = clickDetection.pathPoint.h1;
 			if (clickDetection.controlPoint === 'h2') this.controlPoint = clickDetection.pathPoint.h2;
-			log(clickDetection);
-			msPoints.setActive(clickDetection.pathPoint, clickDetection.controlPoint);
 			ehd.ctxType = clickDetection.controlPoint;
 		}
 
@@ -126,6 +124,8 @@ export class Tool_PathEdit {
 			this.draggingCurve = false;
 		}
 
+		msPoints.setActive(this.pathPoint, ehd.ctxType);
+		// log(msPoints.active);
 		// if (msShapes.members.length) editor.nav.panel = 'Attributes';
 		// log('Tool_PathEdit.mousedown', 'end');
 	}
