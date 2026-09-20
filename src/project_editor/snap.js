@@ -153,21 +153,20 @@ export class Snap {
 					result.x = ehd.initial.point.x;
 				}
 			} else if (typeof ehd.initial.point?.angle === 'number') {
-				// Snapping
-				this.lock.x = true;
-				this.lock.y = true;
-				// Check for handle lock to original angle
-				if (isAngleMoreHorizontal(ehd.initial.point.angle)) {
-					// Handle is more horizontal, lock to mouse x
-					const base = this.point.x - parentPoint.x + x;
-					const newY = base * Math.tan(ehd.initial.point.angle) + parentPoint.y;
-					result.y = newY - this.point.y;
-				} else {
-					// Handle is more vertical, lock to mouse y
-					const base = this.point.y - parentPoint.y + y;
-					const newX = base / Math.tan(ehd.initial.point.angle) + parentPoint.x;
-					result.x = newX - this.point.x;
-				}
+				this.lock = { x: true, y: true };
+				let initial = ehd.initial.point;
+				log(`Initial point angle: ${initial.angle}`);
+				const ux = Math.cos(initial.angle);
+				const uy = Math.sin(initial.angle);
+				// Vector from start to current
+				const dx = x - initial.x;
+				const dy = y - initial.y;
+				// Dot product (projection distance)
+				const t = dx * ux + dy * uy;
+				result = {
+					x: initial.x + t * ux,
+					y: initial.y + t * uy,
+				};
 			}
 		}
 		return result;
