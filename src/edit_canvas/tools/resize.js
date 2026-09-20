@@ -234,11 +234,13 @@ export class Tool_Resize {
 		// Figure out cursor
 		const hoveredPath = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 		const oldSBH = this.sideBearingHover;
-		this.sideBearingHover = isSideBearingHere(
-			ehd.current.mouse.c.x,
-			ehd.current.mouse.c.y,
-			editor.selectedItem
-		);
+		if (!ehd.dragging) {
+			this.sideBearingHover = isSideBearingHere(
+				ehd.current.mouse.c.x,
+				ehd.current.mouse.c.y,
+				editor.selectedItem
+			);
+		}
 
 		if (corner) {
 			setCursor(corner);

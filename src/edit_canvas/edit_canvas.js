@@ -338,6 +338,7 @@ export class EditCanvas extends HTMLElement {
 
 		function drawSystemGuidelines(drawVerticals = true) {
 			// log(`drawSystemGuidelines`, 'start');
+			const ehd = eventHandlerData;
 			const alpha = transparencyToAlpha(project.settings.guides.system.transparency);
 			const showLabels = project.settings.guides.system.showLabels;
 			// Horizontals
@@ -363,7 +364,7 @@ export class EditCanvas extends HTMLElement {
 				}
 
 				if (verticals.leftSide.enabled) {
-					if (sbHover === 'lsb') {
+					if (sbHover === 'lsb' && !ehd.dragging) {
 						const lsbDisplay = Math.round(currentItem.leftSideBearing * 100) / 100;
 						ctx.fillStyle = uiColors.accent;
 						drawGuideLabel(`${verticals.leftSide.name} bearing: ${lsbDisplay}`, 0, false);
@@ -375,7 +376,7 @@ export class EditCanvas extends HTMLElement {
 				}
 
 				if (verticals.rightSide.enabled && advanceWidth && currentItem.objType !== 'Component') {
-					if (sbHover === 'rsb') {
+					if (sbHover === 'rsb' && !ehd.dragging) {
 						const rsbDisplay = Math.round(currentItem.rightSideBearing * 100) / 100;
 						ctx.fillStyle = uiColors.accent;
 						drawGuideLabel(
