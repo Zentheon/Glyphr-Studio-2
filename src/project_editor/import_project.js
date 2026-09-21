@@ -188,14 +188,14 @@ function migrate__v1_13_2_to_v2_0_0(oldProject) {
 	newPreferences.contextCharacters.transparency = oldColors.contextglyphtransparency || 90;
 
 	// Guides
-	newGuides.system.transparency = oldColors.systemguidetransparency || 70;
-	newGuides.custom.transparency = oldColors.systemguidetransparency || 70;
+	newGuides.system.opacity = 100 - (oldColors.systemguidetransparency || 70);
+	newGuides.custom.opacity = 100 - (oldColors.systemguidetransparency || 70);
 	newGuides.grids.divisions = oldSettings.griddivisions;
 	newGuides.grids.snap = oldSettings.snaptogrid;
 	// Seems it's a string in v1 ???
 	let gridTransparency = Number(oldColors.gridtransparency);
 	newGuides.grids.enable = gridTransparency !== 100;
-	newGuides.grids.transparency = gridTransparency;
+	newGuides.grids.opacity = 100 - gridTransparency;
 	if (oldGuides && Object.keys(oldGuides).length) {
 		Object.keys(oldGuides).forEach((key) => {
 			let oldGuide = oldGuides[key];

@@ -85,7 +85,7 @@ export class SystemGuides {
 
 		this.enabled = oa?.enabled ?? true;
 		this.showLabels = oa?.showLabels ?? false;
-		this.transparency = oa?.transparency ?? 70;
+		this.opacity = oa?.opacity ?? 30;
 		this.snapEnabled = oa?.snapEnabled ?? true;
 		this.snapLimit = oa?.snapLimit ?? 25;
 		this._horizontal = {};
@@ -119,7 +119,7 @@ export class SystemGuides {
 		let result = {};
 
 		result.enabled = this.enabled;
-		result.transparency = this.transparency;
+		result.opacity = this.opacity;
 		result.snapEnabled = this.snapEnabled;
 		result.snapLimit = this.snapLimit;
 		result.guides = {};

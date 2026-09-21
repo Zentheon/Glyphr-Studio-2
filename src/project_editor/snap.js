@@ -17,17 +17,12 @@ export class Snap {
 		// log(`Snap.constructor`, 'start');
 		this.lock = { x: false, y: false };
 		this.objType = 'Snap';
-		this.settings = {
-			// snapLimitEdge: oa.snapLimitEdge || 0.5, // 0 to 1 grid cell range
-			// snapLimitCorner: oa.snapLimitCorner || 20, // em, scaled by zoom. 0 always snaps
-		};
+		this.settings = {};
 		/** @type {MultiSelectShapes | null} */
 		this.shapes = null;
 		this.point = {
 			x: 0,
 			y: 0,
-			xLocked: false,
-			yLocked: false,
 			parent: null,
 		};
 		this.snapped = {
@@ -170,4 +165,19 @@ export class Snap {
 		}
 		return result;
 	}
+}
+
+function findClosestPointAcrossPaths(paths, x, y) {
+	let best = null;
+	for (const path of paths) {
+		const point = path.findClosestPointOnCurve(x, y);
+		if (!point) continue;
+		const dx = point.x - x;
+		const dy = point.y - y;
+		const d2 = dx * dx + dy * dy;
+		if (best === null || d2 < best.d2) {
+			best = { ...point, d2 };
+		}
+	}
+	return best ? { x: best.x, y: best.y } : null;
 }

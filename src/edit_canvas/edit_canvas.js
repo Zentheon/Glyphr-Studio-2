@@ -1,5 +1,11 @@
 import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
-import { accentColors, getColorFromRGBA, transparencyToAlpha, uiColors } from '../common/colors.js';
+import {
+	accentColors,
+	getColorFromRGBA,
+	opacityToAlpha,
+	transparencyToAlpha,
+	uiColors,
+} from '../common/colors.js';
 import { makeElement } from '../common/dom.js';
 import { clone } from '../common/functions.js';
 import { drawGlyph, drawGlyphOutlineMode } from '../display_canvas/draw_paths.js';
@@ -337,7 +343,7 @@ export class EditCanvas extends HTMLElement {
 
 		function drawSystemGuidelines(drawVerticals = true) {
 			// log(`drawSystemGuidelines`, 'start');
-			const alpha = transparencyToAlpha(project.settings.guides.system.transparency);
+			const alpha = opacityToAlpha(project.settings.guides.system.opacity);
 			const showLabels = project.settings.guides.system.showLabels;
 			// Horizontals
 			let horizontals = project.settings.guides.system.getHorizontal();
@@ -397,7 +403,7 @@ export class EditCanvas extends HTMLElement {
 			const custom = getCurrentProject().settings.guides.custom;
 
 			if (custom.enabled) {
-				let alpha = transparencyToAlpha(custom.transparency);
+				let alpha = opacityToAlpha(custom.opacity);
 				custom.guides.forEach((guide) => {
 					if (guide.enabled) {
 						let fill = getColorFromRGBA(guide.color, alpha);
@@ -422,7 +428,7 @@ export class EditCanvas extends HTMLElement {
 			let y1 = Math.ceil(cYsY(0) / gridSquareSize) * gridSquareSize;
 
 			// log(`fill: ${fill}`);
-			let alpha = transparencyToAlpha(editor.project.settings.guides.grids.transparency);
+			let alpha = opacityToAlpha(editor.project.settings.guides.grids.opacity);
 			const fill = getColorFromRGBA(gridColor, alpha);
 			ctx.fillStyle = fill;
 			for (let x = x0; x <= x1; x += gridSquareSize) {

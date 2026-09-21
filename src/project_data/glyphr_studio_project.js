@@ -117,12 +117,12 @@ export class GlyphrStudioProject {
 				custom: {
 					enabled: true,
 					showLabels: false,
-					transparency: 70,
+					opacity: 30,
 					guides: [],
 				},
 				grids: {
 					enabled: false,
-					transparency: 90,
+					opacity: 10,
 					divisions: 10,
 					snap: false,
 				},

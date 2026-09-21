@@ -203,25 +203,6 @@ export class Tool_Resize {
 
 			ehd.current.point = snap.axisLock();
 			ehd.current.point = snap.snapBoundingBox();
-			// newPos = result;
-			// Snapping
-			// if (ehd.isShiftDown) {
-			// 	log(`initial x: ${ehd.initialPoint.x}, y: ${ehd.initialPoint.y}`);
-			// 	const mouseSX = ehd.current.mouse.s.y;
-			// 	const mouseSY = ehd.current.mouse.s.y;
-			// 	const mouse = { x: mouseSX, y: mouseSY };
-			// 	const firstClick = { x: ehd.initialPoint.mouseSX, y: ehd.initialPoint.mouseSY };
-			// 	const ang = calculateAngle(mouse, firstClick);
-			// 	if (isAngleMoreHorizontal(ang)) {
-			// 		// Point is moving more horizontal, snap to mouse y
-			// 		d.x = mouse.x - this.clickedShape.x - (firstClick.x - ehd.initialPoint.x);
-			// 		d.y = ehd.initialPoint.y - this.clickedShape.y;
-			// 	} else {
-			// 		// Point is moving more vertical, snap to mouse x
-			// 		d.x = ehd.initialPoint.x - this.clickedShape.x;
-			// 		d.y = mouse.y - this.clickedShape.y - (firstClick.y - ehd.initialPoint.y);
-			// 	}
-			// }
 
 			msShapes.setShapePosition(ehd.current.point.x, ehd.current.point.y);
 			this.monitorForDeselect = false;

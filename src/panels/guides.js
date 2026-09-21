@@ -47,10 +47,10 @@ export function makePanel_Guides() {
 	if (showSystem) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
-			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.system.transparency, (newValue) => {
-				guides.system.transparency = newValue;
-				getCurrentProjectEditor().editCanvas.redraw('guides system transparency');
+			makeSingleLabel('Opacity'),
+			makeFancySlider(guides.system.opacity, (newValue) => {
+				guides.system.opacity = newValue;
+				getCurrentProjectEditor().editCanvas.redraw('guides system opacity');
 			}),
 			makeElement(),
 			makeSingleLabel('Show labels'),
@@ -70,10 +70,10 @@ export function makePanel_Guides() {
 	if (showCustom) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
-			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.custom.transparency, (newValue) => {
-				guides.custom.transparency = newValue;
-				getCurrentProjectEditor().editCanvas.redraw('guides custom transparency');
+			makeSingleLabel('Opacity'),
+			makeFancySlider(guides.custom.opacity, (newValue) => {
+				guides.custom.opacity = newValue;
+				getCurrentProjectEditor().editCanvas.redraw('guides custom opacity');
 			}),
 			makeElement(),
 			makeSingleLabel('Show labels'),
@@ -93,10 +93,10 @@ export function makePanel_Guides() {
 	if (showGrid) {
 		addAsChildren(viewOptionsCard, [
 			makeElement(),
-			makeSingleLabel('Transparency'),
-			makeFancySlider(guides.grids.transparency, (newValue) => {
-				guides.grids.transparency = newValue;
-				getCurrentProjectEditor().editCanvas.redraw('guides grid transparency');
+			makeSingleLabel('Opacity'),
+			makeFancySlider(guides.grids.opacity, (newValue) => {
+				guides.grids.opacity = newValue;
+				getCurrentProjectEditor().editCanvas.redraw('grid opacity');
 			}),
 		]);
 	}
