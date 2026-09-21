@@ -21,8 +21,8 @@ export class Tool_NewBasicPath {
 		// log(`Tool_NewBasicPath.mousedown`, 'start');
 		const editor = getCurrentProjectEditor();
 		ehd.newBasicPathMaxes = {
-			xMax: ehd.current.mouse.s.y,
-			xMin: ehd.current.mouse.s.y,
+			xMax: ehd.current.mouse.s.x,
+			xMin: ehd.current.mouse.s.x,
 			yMax: ehd.current.mouse.s.y,
 			yMin: ehd.current.mouse.s.y,
 		};
@@ -36,11 +36,6 @@ export class Tool_NewBasicPath {
 			// log(`making Rectangle path`);
 			ehd.newBasicPath = rectPathFromMaxes(ehd.newBasicPathMaxes, `New rectangle`);
 		}
-
-		ehd.initial.mouse.c.x = ehd.current.mouse.s.y;
-		ehd.initial.mouse.c.y = ehd.current.mouse.s.y;
-		// log(`ehd.initial.mouse.c.x: ${ehd.initial.mouse.c.x}`);
-		// log(`ehd.initial.mouse.c.y: ${ehd.initial.mouse.c.y}`);
 
 		editor.multiSelect.shapes.clear();
 
@@ -56,10 +51,10 @@ export class Tool_NewBasicPath {
 		// log(`Mouse:   x ${ehd.current.mouse.s.y}, y ${ehd.current.mouse.s.y}`);
 		// log(`ehd.newBasicPathMaxes before ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 		if (isMaxes(ehd.newBasicPathMaxes)) {
-			ehd.newBasicPathMaxes.xMax = Math.max(ehd.initial.mouse.c.x, ehd.current.mouse.s.y);
-			ehd.newBasicPathMaxes.xMin = Math.min(ehd.initial.mouse.c.x, ehd.current.mouse.s.y);
-			ehd.newBasicPathMaxes.yMax = Math.max(ehd.initial.mouse.c.y, ehd.current.mouse.s.y);
-			ehd.newBasicPathMaxes.yMin = Math.min(ehd.initial.mouse.c.y, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.xMax = Math.max(ehd.initial.mouse.s.x, ehd.current.mouse.s.x);
+			ehd.newBasicPathMaxes.xMin = Math.min(ehd.initial.mouse.s.x, ehd.current.mouse.s.x);
+			ehd.newBasicPathMaxes.yMax = Math.max(ehd.initial.mouse.s.y, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.yMin = Math.min(ehd.initial.mouse.s.y, ehd.current.mouse.s.y);
 			// log(`ehd.newBasicPathMaxes afters ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 
 			if (editor.selectedTool === 'newOval') {

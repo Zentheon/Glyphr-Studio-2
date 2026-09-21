@@ -150,8 +150,6 @@ export class Tool_NewPath {
 
 		this.firstPoint = false;
 		this.currentPoint = {};
-		ehd.last.mouse.c.x = -100;
-		ehd.last.mouse.c.y = -100;
 		// log('Tool_NewPath.mouseup', 'end');
 	}
 
