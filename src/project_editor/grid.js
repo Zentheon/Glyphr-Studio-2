@@ -10,8 +10,9 @@ export class Grid {
 		this.settings = {
 			name: oa.name,
 			location: !isNaN(parseInt(oa.location)) ? parseInt(oa.location) : 200,
-			snapLimitEdge: oa.snapLimitEdge || 0.5, // 0 to 1 grid cell range
-			snapLimitCorner: oa.snapLimitCorner || 20, // em, scaled by zoom. 0 always snaps
+			// em, scaled by zoom. 0 always snaps
+			snapLimitEdge: oa.snapLimitEdge || 20,
+			snapLimitCorner: oa.snapLimitCorner || 20,
 			color: oa.color || defaultCustomGuideColor,
 			visible: !!oa.visible,
 			x: {
@@ -32,18 +33,23 @@ export class Grid {
 		return this.settings;
 	}
 
-	#snapDimension(pos, size) {
+	/**
+	 * @param {number} pos
+	 * @param {number} size
+	 * @param {number} z
+	 */
+	#snapDimension(pos, size, z) {
 		const edge1 = Math.floor(pos / size) * size;
 		const edge2 = edge1 + size;
 		let result = { pos: pos < (edge1 + edge2) / 2 ? edge1 : edge2, withinLimit: false };
 
 		// Limit checking
-		const limitEdge = this.settings.snapLimitEdge / 2;
-		if (this.settings.snapLimitEdge >= 1) {
+		const limitEdge = this.settings.snapLimitEdge / z;
+		if (limitEdge === 0) {
 			result.withinLimit = true;
-		} else if (Math.abs(pos - edge1) / size < limitEdge) {
+		} else if (Math.abs(pos - edge1) < limitEdge) {
 			result.withinLimit = true;
-		} else if (Math.abs(pos - edge2) / size < limitEdge) {
+		} else if (Math.abs(pos - edge2) < limitEdge) {
 			result.withinLimit = true;
 		}
 		return result;
@@ -51,19 +57,21 @@ export class Grid {
 
 	/**
 	 * @param {number} x
+	 * @param {number} z
 	 */
-	snapX(x) {
+	snapX(x, z) {
 		x += this.settings.x.offset;
 		let size = this.settings.x.size;
-		return this.#snapDimension(x, size);
+		return this.#snapDimension(x, size, z);
 	}
 	/**
 	 * @param {number} y
+	 * @param {number} z
 	 */
-	snapY(y) {
+	snapY(y, z) {
 		y += this.settings.y.offset;
 		let size = this.settings.y.size;
-		return this.#snapDimension(y, size);
+		return this.#snapDimension(y, size, z);
 	}
 
 	/**
@@ -73,8 +81,8 @@ export class Grid {
 	 */
 	snap(x, y, z) {
 		let result = { x, y };
-		const snapX = this.snapX(x);
-		const snapY = this.snapX(y);
+		const snapX = this.snapX(x, z);
+		const snapY = this.snapX(y, z);
 
 		// corner snapping
 		if (this.settings.x.enabled && this.settings.y.enabled) {
