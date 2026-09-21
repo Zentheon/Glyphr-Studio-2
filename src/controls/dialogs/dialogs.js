@@ -204,7 +204,7 @@ export function showNotation(content, x, y) {
 		notation = makeElement({
 			id: 'notation',
 			attributes: { tabindex: '-1' },
-			style: 'display: none;',
+			style: 'display: none; pointer-events: none;',
 		});
 		document.body.appendChild(notation);
 	}
