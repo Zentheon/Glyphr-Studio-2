@@ -27,16 +27,16 @@ export class Guide {
 	 * @param {number} z
 	 */
 	snap(x, y, z) {
-		let result = { x, y, xWithinLimit: false, yWithinLimit: false };
+		let result = { x, y, xHit: false, yHit: false };
 		if (this.snapEnabled) {
 			const limit = this.snapLimit / z;
 			if (this.angle === 0 && Math.abs(x - this.position) < limit) {
 				result.x = this.position;
-				result.xWithinLimit = true;
+				result.xHit = true;
 			}
 			if (this.angle === 90 && Math.abs(y - this.position) < limit) {
 				result.y = this.position;
-				result.yWithinLimit = true;
+				result.yHit = true;
 			}
 		}
 

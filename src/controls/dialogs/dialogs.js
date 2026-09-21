@@ -209,7 +209,8 @@ export function showNotation(content, x, y) {
 		document.body.appendChild(notation);
 	}
 	notation.innerHTML = content;
-	notation.style.top = y - 10 + 'px';
+	let h = notation.offsetHeight;
+	notation.style.top = y - h + 35 + 'px';
 	notation.style.right = `calc(100% - ${x + 515}px)`;
 	notation.style.display = 'block';
 }
@@ -221,21 +222,46 @@ export function showNotation(content, x, y) {
 export function makeAndShowPathAddPointNotation(emPoint) {
 	let x = round(emPoint.x, 3);
 	let y = round(emPoint.y, 3);
-	let splitX = ('' + x).split('.');
-	let preX = splitX[0] || '0';
-	let postX = splitX[1] || '';
-	let splitY = ('' + y).split('.');
-	let preY = splitY[0] || '0';
-	let postY = splitY[1] || '';
 
 	let content = `
-	<div class="notation__path-add-point">
-		<label>x</label>
-		<span style="text-align: right;">${preX}</span>
-		<span>${postX.length ? '.' : ''}${postX}</span>
-		<label>y</label>
-		<span style="text-align: right;">${preY}</span>
-		<span>${postY.length ? '.' : ''}${postY}</span>
+	<div class="notation path-add-point">
+	<label>x</label>
+    <span>${x}<label-small> Em</label-small></span>
+    <div style="grid-column: 1 / -1; margin: 5px 0;"></div>
+    <label>y</label>
+    <span>${y}<label-small> Em</label-small></span>
+	</div>`;
+	showNotation(content, sXcX(emPoint.x), sYcY(emPoint.y));
+}
+
+/**
+ * Shows a notation for what is currently being snapped to
+ * @param {Object} emPoint - x/y point for where to show it
+ * @param {string} xTitle
+ * @param {string} yTitle
+ * @param {string} snapTitle
+ */
+export function makeAndShowSnapNotation(emPoint, xTitle, yTitle, snapTitle) {
+	let x = round(emPoint.x, 3);
+	let y = round(emPoint.y, 3);
+
+	xTitle = xTitle ? `<br><label>${xTitle}</label>` : '';
+	yTitle = yTitle ? `<br><label>${yTitle}</label>` : '';
+
+	if (!xTitle && !yTitle) {
+		closeAllNotations();
+		return;
+	}
+
+	let content = `
+	<div class="notation snap">
+    <label>x</label>
+    <span>${x}<label-small> Em</label-small></span>
+    ${xTitle}
+    <div style="grid-column: 1 / -1; margin: 5px 0;"></div>
+    <label>y</label>
+    <span>${y}<label-small> Em</label-small></span>
+    ${yTitle}
 	</div>`;
 	showNotation(content, sXcX(emPoint.x), sYcY(emPoint.y));
 }

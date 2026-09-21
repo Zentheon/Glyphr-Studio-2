@@ -1,5 +1,6 @@
 import { getCurrentProjectEditor } from '../app/main';
 import { calculateAngle } from '../common/functions';
+import { closeAllNotations, makeAndShowSnapNotation } from '../controls/dialogs/dialogs';
 import { cXsX, cYsY } from '../edit_canvas/edit_canvas';
 import { ehd } from '../edit_canvas/events';
 import { isAngleMoreHorizontal } from '../edit_canvas/tools/path_edit';
@@ -25,6 +26,11 @@ export class Snap {
 			y: 0,
 			parent: null,
 		};
+		/** @type {string[]} */
+		this.snappedTitles = [];
+		this.xTitle = null;
+		this.yTitle = null;
+		this.snapTitle = null;
 		this.snapped = {
 			x: null,
 			y: null,
@@ -46,6 +52,9 @@ export class Snap {
 	) {
 		let result = { x, y };
 
+		this.xTitle = null;
+		this.yTitle = null;
+		this.snapTitle = null;
 		if (data.isAltDown) {
 			// No regular snapping while alt is held
 			return result;
@@ -66,6 +75,9 @@ export class Snap {
 			let snapped = grid.snap(x, y, data.current.zoom);
 			tmp.x = snapped.x;
 			tmp.y = snapped.y;
+			if (snapped.xHit && snapped.yHit) this.snapTitle = 'grid intersection';
+			if (snapped.xHit) this.xTitle = 'vertical grid line';
+			if (snapped.yHit) this.yTitle = 'horizontal grid line';
 		}
 
 		// --------------------------------------------------------------
@@ -78,8 +90,14 @@ export class Snap {
 			for (const guide of Object.values(guides.system.getAll(item))) {
 				if (guide.enabled) {
 					let snapped = guide.snap(x, y, data.current.zoom);
-					if (snapped.xWithinLimit) tmp.x = snapped.x;
-					if (snapped.yWithinLimit) tmp.y = snapped.y;
+					if (snapped.xHit) {
+						tmp.x = snapped.x;
+						this.xTitle = guide.name;
+					}
+					if (snapped.yHit) {
+						tmp.y = snapped.y;
+						this.yTitle = guide.name;
+					}
 				}
 			}
 		}
@@ -88,8 +106,14 @@ export class Snap {
 			for (const guide of guides.custom.guides) {
 				if (guide.enabled) {
 					let snapped = guide.snap(x, y, data.current.zoom);
-					if (snapped.xWithinLimit) tmp.x = snapped.x;
-					if (snapped.yWithinLimit) tmp.y = snapped.y;
+					if (snapped.yHit) {
+						tmp.x = snapped.x;
+						this.xTitle = guide.name;
+					}
+					if (snapped.yHit) {
+						tmp.y = snapped.y;
+						this.yTitle = guide.name;
+					}
 				}
 			}
 		}
@@ -98,6 +122,7 @@ export class Snap {
 		if (!this.lock.x) result.x = tmp.x;
 		if (!this.lock.y) result.y = tmp.y;
 
+		makeAndShowSnapNotation(result, this.xTitle, this.yTitle, this.snapTitle);
 		return result;
 	}
 	/**

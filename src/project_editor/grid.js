@@ -83,7 +83,7 @@ export class Grid {
 				limitCorner === 0 ||
 				(Math.abs(x - snapX.pos) < limitCorner && Math.abs(y - snapY.pos) < limitCorner)
 			) {
-				return { x: snapX.pos, y: snapY.pos };
+				return { x: snapX.pos, xHit: true, y: snapY.pos, yHit: true };
 			}
 		}
 
@@ -93,8 +93,10 @@ export class Grid {
 			const dy = Math.abs(snapY.pos - y);
 			if (this.settings.x.enabled && snapX.withinLimit && Math.min(dx, dy) === dx) {
 				result.x = snapX.pos; // keep y: snap to vertical edge
+				result.xHit = true;
 			} else if (this.settings.y.enabled && snapY.withinLimit && Math.min(dx, dy) === dy) {
 				result.y = snapY.pos; // keep x: snap to horizontal edge
+				result.yHit = true;
 			}
 		}
 		return result;
