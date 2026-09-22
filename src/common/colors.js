@@ -347,6 +347,15 @@ export function transparencyToAlpha(transparency) {
 }
 
 /**
+ * Converts Opacity to Alpha. Inverse of `transparencyToAlpha`
+ * @param {String} opacity - 0=transparent, 100=opaque
+ * @returns {Number}
+ */
+export function opacityToAlpha(opacity) {
+	return 1 - transparencyToAlpha(opacity);
+}
+
+/**
  * Makes a random fully saturated color
  * @returns {String}
  */

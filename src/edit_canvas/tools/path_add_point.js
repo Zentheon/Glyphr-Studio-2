@@ -5,7 +5,7 @@ import {
 	makeAndShowPathAddPointNotation,
 } from '../../controls/dialogs/dialogs.js';
 import { cXsX, cYsY, sXcX, sYcY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { getShapeAtLocation, selectTool } from './tools.js';
 
 /**
@@ -20,21 +20,18 @@ export class Tool_PathAddPoint {
 	mousedown(ev) {
 		const editor = getCurrentProjectEditor();
 		let singlePath = editor.multiSelect.shapes.singleton;
-		let clickedShape = getShapeAtLocation(
-			eventHandlerData.mousePosition.x,
-			eventHandlerData.mousePosition.y
-		);
+		let clickedShape = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		if (this.previewPoint && singlePath && singlePath.objType !== 'ComponentInstance') {
 			let addedPoint = singlePath.insertPathPoint(
 				this.previewPoint.point,
 				this.previewPoint.split,
-				eventHandlerData.isShiftDown
+				ehd.isShiftDown
 			);
 			if (addedPoint) {
 				editor.multiSelect.points.select(addedPoint);
-				if (eventHandlerData.isShiftDown) addedPoint.roundAll(0);
-				if (eventHandlerData.isCtrlDown) {
+				if (ehd.isShiftDown) addedPoint.roundAll(0);
+				if (ehd.isCtrlDown) {
 					addedPoint.h1.use = false;
 					addedPoint.h2.use = false;
 				}
@@ -44,7 +41,7 @@ export class Tool_PathAddPoint {
 			}
 		} else if (clickedShape) {
 			editor.multiSelect.points.clear();
-			if (eventHandlerData.isCtrlDown) editor.multiSelect.shapes.add(clickedShape);
+			if (ehd.isCtrlDown) editor.multiSelect.shapes.add(clickedShape);
 			else editor.multiSelect.shapes.select(clickedShape);
 			if (clickedShape.objType === 'ComponentInstance') {
 				selectTool('pathEdit');
@@ -56,13 +53,13 @@ export class Tool_PathAddPoint {
 		} else {
 			editor.selectedTool = 'newPath';
 			editor.publish('whichToolIsSelected', editor.selectedTool);
-			eventHandlerData.currentToolHandler = editor.eventHandlers.tool_addPath;
-			eventHandlerData.currentToolHandler.dragging = true;
-			eventHandlerData.currentToolHandler.firstPoint = true;
-			eventHandlerData.currentToolHandler.mousedown(ev);
+			ehd.currentToolHandler = editor.eventHandlers.tool_addPath;
+			ehd.currentToolHandler.dragging = true;
+			ehd.currentToolHandler.firstPoint = true;
+			ehd.currentToolHandler.mousedown(ev);
 		}
 
-		eventHandlerData.hoverPoint = false;
+		ehd.hoverPoint = false;
 	}
 
 	mousemove() {
@@ -71,12 +68,11 @@ export class Tool_PathAddPoint {
 
 		let singlePath = editor.multiSelect.shapes.singleton;
 		if (singlePath) {
-			let mousePoint = eventHandlerData.mousePosition;
 			let curvePoint = singlePath.findClosestPointOnCurve({
-				x: cXsX(mousePoint.x),
-				y: cYsY(mousePoint.y),
+				x: ehd.current.mouse.s.x,
+				y: ehd.current.mouse.s.y,
 			});
-			if (eventHandlerData.isShiftDown) {
+			if (ehd.isShiftDown) {
 				curvePoint.x = round(curvePoint.x);
 				curvePoint.y = round(curvePoint.y);
 			}
@@ -87,15 +83,15 @@ export class Tool_PathAddPoint {
 					y: sYcY(curvePoint.y) - theme.handleSize / 2,
 				};
 				makeAndShowPathAddPointNotation(curvePoint);
-				eventHandlerData.hoverPoint = canvasPoint;
+				ehd.hoverPoint = canvasPoint;
 			} else {
 				this.previewPoint = false;
-				eventHandlerData.hoverPoint = false;
+				ehd.hoverPoint = false;
 				closeAllNotations();
 			}
 		} else {
 			this.previewPoint = false;
-			eventHandlerData.hoverPoint = false;
+			ehd.hoverPoint = false;
 			closeAllNotations();
 		}
 

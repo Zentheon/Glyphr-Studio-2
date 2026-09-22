@@ -1,8 +1,8 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import { getConfigGroup, getCurrentProjectEditor } from '../app/main.js';
 import { showToast } from '../controls/dialogs/dialogs.js';
 import { ioSVG_convertSVGTagsToGlyph } from '../formats_io/svg_outlines/svg_outline_import.js';
 import { copyShapesFromTo } from '../project_editor/actions.js';
-import { cancelDefaultEventActions } from './events.js';
+import { ehd } from './events.js';
 
 /**
  * Given some SVG code, parse it into Glyphr Studio shapes, and
@@ -34,12 +34,12 @@ export function importSVGtoCurrentItem(svgData, sourceText = 'SVG') {
 		msShapes.clear();
 		newShapes.forEach((shape) => msShapes.add(shape));
 
-		const appSettings = getCurrentProject().settings.app;
+		const appSettings = getConfigGroup('app');
 		if (appSettings.autoSideBearingsOnSVGDragDrop > -1) {
 			const sbValue = appSettings.autoSideBearingsOnSVGDragDrop;
 			msShapes.setShapePosition(sbValue);
 			editor.selectedItem.advanceWidth = msShapes.maxes.width + sbValue * 2;
-		} else if (getCurrentProject().settings.app.moveShapesOnSVGDragDrop) {
+		} else if (getConfigGroup('app').moveShapesOnSVGDragDrop) {
 			msShapes.setShapePosition(0, msShapes.maxes.height);
 		}
 
@@ -99,7 +99,7 @@ export async function handlePasteSVGonEditCanvas(event) {
 export function handleDropSVGonEditCanvas(event) {
 	// log(`handleDropSVGonEditCanvas`, 'start');
 
-	cancelDefaultEventActions(event);
+	ehd.cancelDefaultEventActions(event);
 
 	const filesInput = event.dataTransfer;
 	const file = filesInput.files[0];

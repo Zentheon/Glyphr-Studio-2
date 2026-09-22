@@ -1,6 +1,6 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { round } from '../../common/functions.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 
 /**
 	// ----------------------------------------------------------------
@@ -14,8 +14,8 @@ export class Tool_Kern {
 	}
 
 	mousedown() {
-		// log('Tool_Kern - mouse down: ' + eventHandlerData.mousePosition.x + ':' + eventHandlerData.mousePosition.y);
-		this.deltaX = eventHandlerData.mousePosition.x;
+		// log('Tool_Kern - mouse down: ' + eventHandlerData.current.mouse.c.x + ':' + eventHandlerData.current.mouse.c.y);
+		this.deltaX = ehd.current.mouse.c.x;
 		this.dragging = true;
 	}
 
@@ -33,12 +33,10 @@ export class Tool_Kern {
 			// Moving paths if mousedown
 			const editor = getCurrentProjectEditor();
 			let value = 1 * editor.selectedKernGroup.value;
-			let newValue = round(
-				value + (1 * (eventHandlerData.mousePosition.x - this.deltaX)) / editor.view.dz
-			);
+			let newValue = round(value + (1 * (ehd.current.mouse.c.x - this.deltaX)) / editor.view.dz);
 			editor.selectedKernGroup.value = newValue;
 			editor.publish('currentKernGroup', editor.selectedKernGroup);
-			this.deltaX = eventHandlerData.mousePosition.x;
+			this.deltaX = ehd.current.mouse.c.x;
 		}
 	}
 }

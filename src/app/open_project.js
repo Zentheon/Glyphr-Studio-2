@@ -2,7 +2,7 @@ import { addAsChildren, makeElement } from '../common/dom.js';
 import logoVertical from '../common/graphics/logo-wordmark-vertical.svg?raw';
 import { closeEveryTypeOfDialog, showError, showToast } from '../controls/dialogs/dialogs.js';
 import { makeProgressIndicator } from '../controls/progress-indicator/progress_indicator.js';
-import { cancelDefaultEventActions } from '../edit_canvas/events.js';
+import { ehd } from '../edit_canvas/events.js';
 import { ioFont_importFont } from '../formats_io/otf/font_import.js';
 import { ioSVG_importSVGfont } from '../formats_io/svg_font/svg_font_import.js';
 import { validateSingleFileInput } from '../formats_io/validate_file_input.js';
@@ -71,13 +71,13 @@ export function makePage_OpenProject(secondProjectFlag = false) {
 	// Drag over handlers
 	const page = content.querySelector('#open-project__page');
 	page.addEventListener('dragenter', handleDragEnter);
-	page.addEventListener('dragover', cancelDefaultEventActions);
+	page.addEventListener('dragover', ehd.cancelDefaultEventActions);
 
 	// Drop and Drag Leave handlers
 	const dropNote = content.querySelector('#open-project__drop-note');
 
 	dropNote.addEventListener('drop', (/** @type {DragEvent} */ event) => {
-		cancelDefaultEventActions(event);
+		ehd.cancelDefaultEventActions(event);
 		handleOpenProjectPageFileInput(event?.dataTransfer?.items || []);
 	});
 	dropNote.addEventListener('dragleave', handleDragLeave);
@@ -338,7 +338,7 @@ export async function getFilesFromFilePicker(callback, pickerOptions = {}) {
 		const fallbackFileChooser = makeElement({ tag: 'input', attributes: { type: 'file' } });
 		fallbackFileChooser.addEventListener('change', (event) => {
 			// log(fallbackFileChooser.files);
-			cancelDefaultEventActions(event);
+			ehd.cancelDefaultEventActions(event);
 			callback(fallbackFileChooser.files);
 		});
 		fallbackFileChooser.click();

@@ -1,4 +1,4 @@
-import { getCurrentProjectEditor, getGlyphrStudioApp } from '../app/main.js';
+import { getConfigGroup, getCurrentProjectEditor, getGlyphrStudioApp } from '../app/main.js';
 import { charsToHexArray, validateAsHex } from '../common/character_ids.js';
 import { clone, remove, round, trim } from '../common/functions.js';
 import { TextBlockOptions } from '../display_canvas/text_block_options.js';
@@ -9,7 +9,8 @@ import { makeComponentID } from '../pages/components.js';
 import { makeKernGroupID } from '../pages/kerning.js';
 import { makeLigatureID } from '../pages/ligatures.js';
 import { Glyph } from '../project_data/glyph.js';
-import { Guide } from '../project_editor/guide.js';
+import { Grid } from '../project_editor/grid.js';
+import { Guide, SystemGuides } from '../project_editor/guide.js';
 import { basicLatinOrder, CharacterRange } from './character_range.js';
 import { ComponentInstance } from './component_instance.js';
 import { KernGroup } from './kern_group.js';
@@ -43,51 +44,6 @@ export class GlyphrStudioProject {
 				// and the File menu preview default to that same format.
 				exportFormat: 'otf',
 				characterRanges: [],
-			},
-			app: {
-				stopPageNavigation: true,
-				formatSaveFile: false,
-				saveLivePreviews: true,
-				autoSave: true,
-				savePreferences: false,
-				unlinkComponentInstances: true,
-				directlyDragCurves: true,
-				canvasDisplayModeFilled: true,
-				showNonCharPoints: false,
-				itemChooserPageSize: 256,
-				previewText: false,
-				exportLigatures: true,
-				exportKerning: true,
-				exportUneditedItems: true,
-				moveShapesOnSVGDragDrop: false,
-				autoSideBearingsOnSVGDragDrop: 50,
-				autoRightBearingOnFirstShape: 50,
-				highlightPointsNearPoints: 2,
-				highlightPointsNearHandles: 2,
-				highlightPointsNearXZero: 2,
-				highlightPointsNearYZero: 2,
-				guides: {
-					drawGuidesOnTop: false,
-					systemShowGuides: true,
-					systemShowLabels: false,
-					systemTransparency: 70,
-					systemGuides: ['baseline', 'leftSide', 'rightSide'],
-					customShowGuides: true,
-					customShowLabels: false,
-					customTransparency: 70,
-					custom: [],
-					gridShow: false,
-					gridTransparency: 90,
-					gridDivisions: 10,
-					gridSnap: false,
-				},
-				contextCharacters: {
-					showCharacters: false,
-					characterTransparency: 20,
-					showGuides: true,
-					guidesTransparency: 70,
-				},
-				livePreviews: [],
 			},
 			font: {
 				family: 'My Font',
@@ -125,6 +81,22 @@ export class GlyphrStudioProject {
 				overlinePosition: 750,
 				overlineThickness: 10,
 			},
+			guides: {
+				drawOnTop: false,
+				system: undefined,
+				custom: {
+					enabled: true,
+					showLabels: false,
+					opacity: 30,
+					guides: [],
+				},
+				grids: {
+					enabled: false,
+					opacity: 10,
+					divisions: 10,
+					snap: false,
+				},
+			},
 		};
 
 		this.glyphs = {};
@@ -150,14 +122,15 @@ export class GlyphrStudioProject {
 		// Project ID
 		this.settings.project.id = this.settings.project.id || makeProjectID();
 
-		// Guides
-		const newGuides = newProject?.settings?.app?.guides;
-		if (newGuides?.systemGuides) {
-			this.settings.app.guides.systemGuides = clone(newGuides.systemGuides);
-		}
-		if (newGuides?.custom) {
-			this.settings.app.guides.custom = [];
-			newGuides.custom.forEach((guide) => this.settings.app.guides.custom.push(new Guide(guide)));
+		// System guides
+		const newGuides = newProject?.settings?.guides;
+		this.settings.guides.system = new SystemGuides(this.settings.font, newGuides?.system);
+		// Custom guides
+		if (newGuides?.custom?.guides) {
+			this.settings.guides.custom.guides = [];
+			newGuides.custom.guides.forEach((guide) =>
+				this.settings.guides.custom.guides.push(new Guide(guide))
+			);
 		}
 
 		// Character Ranges
@@ -180,12 +153,12 @@ export class GlyphrStudioProject {
 		// Validate descent
 		this.settings.font.descent = -1 * Math.abs(this.settings.font.descent);
 
-		// Live Previews
-		const newPreviews = newProject?.settings?.app?.livePreviews;
-		if (newPreviews) {
-			this.settings.app.livePreviews = [];
-			this.settings.app.livePreviews = newPreviews.map((option) => new TextBlockOptions(option));
-		}
+		// // Live Previews
+		// const newPreviews = newProject?.settings?.app?.livePreviews;
+		// if (newPreviews) {
+		// 	this.settings.app.livePreviews = [];
+		// 	this.settings.app.livePreviews = newPreviews.map((option) => new TextBlockOptions(option));
+		// }
 
 		// log('finished merging settings - result:');
 		// log(this.settings);
@@ -248,16 +221,18 @@ export class GlyphrStudioProject {
 			savedProject.settings.project.characterRanges.push(range.save());
 		});
 
-		// Overwriting livePreviews with .save() version
-		savedProject.settings.app.livePreviews = [];
-		this.settings.app.livePreviews.forEach((preview) => {
-			savedProject.settings.app.livePreviews.push(preview.save());
-		});
+		// // Overwriting livePreviews with .save() version
+		// savedProject.settings.app.livePreviews = [];
+		// this.settings.app.livePreviews.forEach((preview) => {
+		// 	savedProject.settings.app.livePreviews.push(preview.save());
+		// });
 
-		// Overwriting guides with .save() version
-		savedProject.settings.app.guides.custom = [];
-		this.settings.app.guides.custom.forEach((guide) => {
-			savedProject.settings.app.guides.custom.push(guide.save());
+		// Overwriting system guides with .save() version
+		savedProject.settings.guides.system = this.settings.guides.system.save();
+		// Overwriting custom guides with .save() version
+		savedProject.settings.guides.custom.guides = [];
+		this.settings.guides.custom.guides.forEach((guide) => {
+			savedProject.settings.guides.custom.guides.push(guide.save());
 		});
 
 		/**
@@ -456,7 +431,7 @@ export class GlyphrStudioProject {
 		newParentRange.count = 1;
 		if (createAsHidden) newParentRange.enabled = false;
 		projectRanges.push(newParentRange);
-		if (unicodeNonCharPointNames[id] && id !== 0) this.settings.app.showNonCharPoints = true;
+		if (unicodeNonCharPointNames[id] && id !== 0) getConfigGroup('app').showNonCharPoints = true;
 		// log(`createRangeForHex`, 'end');
 	}
 

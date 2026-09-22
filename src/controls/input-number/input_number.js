@@ -1,5 +1,5 @@
 import { makeElement } from '../../common/dom.js';
-import { cancelDefaultEventActions } from '../../edit_canvas/events.js';
+import { ehd } from '../../edit_canvas/events.js';
 import style from './input-number.css?inline';
 
 /**
@@ -378,12 +378,12 @@ export class InputNumber extends HTMLElement {
 		});
 
 		if (this.elementRoot.isIncrement(ev.keyCode)) {
-			cancelDefaultEventActions(ev);
+			ehd.cancelDefaultEventActions(ev);
 			this.elementRoot.upArrow.dispatchEvent(click);
 		}
 
 		if (this.elementRoot.isDecrement(ev.keyCode)) {
-			cancelDefaultEventActions(ev);
+			ehd.cancelDefaultEventActions(ev);
 			this.elementRoot.downArrow.dispatchEvent(click);
 		}
 	}
@@ -403,10 +403,10 @@ export class InputNumber extends HTMLElement {
 		const noModifier = ev.shiftKey && ev.ctrlKey && ev.altKey && ev.metaKey;
 
 		if (this.elementRoot.isIncrement(ev.keyCode, false)) {
-			cancelDefaultEventActions(ev);
+			ehd.cancelDefaultEventActions(ev);
 			this.elementRoot.upArrow.dispatchEvent(click);
 		} else if (this.elementRoot.isDecrement(ev.keyCode, false)) {
-			cancelDefaultEventActions(ev);
+			ehd.cancelDefaultEventActions(ev);
 			this.elementRoot.downArrow.dispatchEvent(click);
 		} else if (noModifier) {
 			this.elementRoot.numberInputChanged(ev);
@@ -432,7 +432,7 @@ export class InputNumber extends HTMLElement {
 			case 38: // d-pad up
 			case 39: // d-pad right
 			case 40: // d-pad down
-				cancelDefaultEventActions(ev);
+				ehd.cancelDefaultEventActions(ev);
 				this.elementRoot.padlock.dispatchEvent(click);
 				break;
 

@@ -214,8 +214,8 @@ export function makeSingleInput(item, property, thisTopic, tagName, additionalLi
 		addAttributeHistory(item, property);
 
 		// Special Case: gridDivisions property
-		if (property === 'gridDivisions') {
-			if(newValue < 1) newValue = 1;
+		if (property === 'divisions') {
+			if (newValue < 1) newValue = 1;
 			item[property] = newValue;
 			editor.publish('editCanvasView', item);
 		}

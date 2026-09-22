@@ -6,7 +6,7 @@ import { Maxes, isMaxes } from '../../project_data/maxes.js';
 import { Path } from '../../project_data/path.js';
 import { PathPoint } from '../../project_data/path_point.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { addPathToCurrentItem, switchToolTo } from './tools.js';
 
 /**
@@ -15,18 +15,15 @@ import { addPathToCurrentItem, switchToolTo } from './tools.js';
 	// ----------------------------------------------------------------
  */
 export class Tool_NewBasicPath {
-	constructor() {
-		this.dragging = false;
-	}
+	constructor() {}
 	mousedown() {
 		// log(`Tool_NewBasicPath.mousedown`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 		ehd.newBasicPathMaxes = {
-			xMax: cXsX(ehd.mousePosition.x),
-			xMin: cXsX(ehd.mousePosition.x),
-			yMax: cYsY(ehd.mousePosition.y),
-			yMin: cYsY(ehd.mousePosition.y),
+			xMax: ehd.current.mouse.s.x,
+			xMin: ehd.current.mouse.s.x,
+			yMax: ehd.current.mouse.s.y,
+			yMin: ehd.current.mouse.s.y,
 		};
 
 		// This is the fake path that shows up in the layers panel
@@ -39,12 +36,6 @@ export class Tool_NewBasicPath {
 			ehd.newBasicPath = rectPathFromMaxes(ehd.newBasicPathMaxes, `New rectangle`);
 		}
 
-		this.dragging = true;
-		ehd.firstX = cXsX(ehd.mousePosition.x);
-		ehd.firstY = cYsY(ehd.mousePosition.y);
-		// log(`ehd.firstX: ${ehd.firstX}`);
-		// log(`ehd.firstY: ${ehd.firstY}`);
-
 		editor.multiSelect.shapes.clear();
 
 		editor.editCanvas.redraw('newBasicPath:mousedown');
@@ -55,15 +46,14 @@ export class Tool_NewBasicPath {
 	mousemove() {
 		// log(`Tool_NewBasicPath.mousemove`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
-		// log(`EHFirst: x ${(ehd.firstX)}, y ${(ehd.firstY)}`);
-		// log(`Mouse:   x ${cXsX(ehd.mousePosition.x)}, y ${cYsY(ehd.mousePosition.y)}`);
+		// log(`EHFirst: x ${(ehd.initial.mouse.c.x)}, y ${(ehd.initial.mouse.c.y)}`);
+		// log(`Mouse:   x ${ehd.current.mouse.s.y}, y ${ehd.current.mouse.s.y}`);
 		// log(`ehd.newBasicPathMaxes before ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 		if (isMaxes(ehd.newBasicPathMaxes)) {
-			ehd.newBasicPathMaxes.xMax = Math.max(ehd.firstX, cXsX(ehd.mousePosition.x));
-			ehd.newBasicPathMaxes.xMin = Math.min(ehd.firstX, cXsX(ehd.mousePosition.x));
-			ehd.newBasicPathMaxes.yMax = Math.max(ehd.firstY, cYsY(ehd.mousePosition.y));
-			ehd.newBasicPathMaxes.yMin = Math.min(ehd.firstY, cYsY(ehd.mousePosition.y));
+			ehd.newBasicPathMaxes.xMax = Math.max(ehd.initial.mouse.s.x, ehd.current.mouse.s.x);
+			ehd.newBasicPathMaxes.xMin = Math.min(ehd.initial.mouse.s.x, ehd.current.mouse.s.x);
+			ehd.newBasicPathMaxes.yMax = Math.max(ehd.initial.mouse.s.y, ehd.current.mouse.s.y);
+			ehd.newBasicPathMaxes.yMin = Math.min(ehd.initial.mouse.s.y, ehd.current.mouse.s.y);
 			// log(`ehd.newBasicPathMaxes afters ${JSON.stringify(ehd.newBasicPathMaxes)}`);
 
 			if (editor.selectedTool === 'newOval') {
@@ -84,9 +74,7 @@ export class Tool_NewBasicPath {
 	mouseup() {
 		// log(`Tool_NewBasicPath.mouseup`, 'start');
 		const editor = getCurrentProjectEditor();
-		const ehd = eventHandlerData;
 		const theme = getCurrentTheme().active;
-
 		// Only make the new path if it's not really small
 		let xSize = Math.abs(ehd.newBasicPathMaxes.xMax - ehd.newBasicPathMaxes.xMin);
 		let ySize = Math.abs(ehd.newBasicPathMaxes.yMax - ehd.newBasicPathMaxes.yMin);
@@ -126,9 +114,8 @@ export class Tool_NewBasicPath {
 			showToast('New shape was too small.');
 		}
 
-		this.dragging = false;
-		ehd.firstX = -100;
-		ehd.firstY = -100;
+		// ehd.initial.mouse.c.x = -100;
+		// ehd.initial.mouse.c.y = -100;
 
 		if (ehd.undoQueueHasChanged) {
 			editor.history.addState(`Added path: ${path.name}`);

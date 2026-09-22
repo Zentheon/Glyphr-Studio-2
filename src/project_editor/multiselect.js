@@ -231,6 +231,18 @@ export class MultiSelectPoints extends MultiSelect {
 		}
 	}
 
+	/**
+	 * @param {object} obj
+	 * @param {string} handleType
+	 */
+	setActive(obj, handleType) {
+		this._active = { i: this.members.indexOf(obj), handleType };
+	}
+
+	get active() {
+		return this._active;
+	}
+
 	deleteShapesPoints() {
 		let point;
 		let parentPath;
@@ -413,6 +425,39 @@ export class MultiSelectPoints extends MultiSelect {
 		this.changed();
 	}
 
+	/**
+	 * Sets the position of the currently selected points.
+	 *
+	 * The handle of interest must be known (using `setActive`) for this method to work.
+	 * @param {number} x - new x
+	 * @param {number} y - new y
+	 */
+	setPathPointPosition(x, y) {
+		// log(`MultiSelectPoints.setPathPointPosition`, 'start');
+		// log(`x, y: ${x}, ${y}`);
+		// log(`this.singleHandle: ${this.singleHandle}`);
+
+		if (this.singleHandle && this.singleton) {
+			this.members[0].setPathPointPosition(this.singleHandle, x, y);
+		} else {
+			// log(this.members[this.active.i]);
+			const p = this._active;
+			let d = {
+				x: x - this.members[p.i][p.handleType].coord.x,
+				y: y - this.members[p.i][p.handleType].coord.y,
+			};
+			for (let m = 0; m < this.members.length; m++) {
+				this.members[m].updatePathPointPosition('p', d.x, d.y);
+			}
+		}
+		this.changed();
+		// log(`MultiSelectPoints.setPathPointPosition`, 'end');
+	}
+
+	/**
+	 * @param {any} dx - delta x
+	 * @param {any} dy - delta y
+	 */
 	updatePathPointPosition(dx, dy) {
 		// log(`MultiSelectPoints.updatePathPointPosition`, 'start');
 		// log(`dx, dy: ${dx}, ${dy}`);
