@@ -258,7 +258,7 @@ export class EventHandlerData {
 					let snapped = guide.snap(x, y, this.current.zoom);
 					if (snapped.xHit) {
 						tmp.x = snapped.x;
-						this.snap.titles.y = guide.name;
+						this.snap.titles.x = guide.name;
 					}
 					if (snapped.yHit) {
 						tmp.y = snapped.y;
@@ -281,12 +281,19 @@ export class EventHandlerData {
 		let result = this.current.point;
 		let corners = this.initial.maxes.corners;
 
-		let bl = { x: corners[0].x - this.current.offset.x, y: corners[0].y - this.current.offset.y };
 		// log(corners);
-		let snapped = this.snapPoint(bl.x, bl.y, editor);
+		let offset = this.current.offset;
+		let snapped;
+		for (let i = 0; i < corners.length; i++) {
+			let c = corners[i];
+			if (i !== 0) continue;
+			c.x -= offset.x;
+			c.y -= offset.y;
+			snapped = this.snapPoint(c.x, c.y, editor);
+			if (!this.lock.x) result.x = this.current.point.x - (c.x - snapped.x);
+			if (!this.lock.y) result.y = this.current.point.y - (c.y - snapped.y);
+		}
 
-		if (!this.lock.x) result.x = this.current.point.x - (bl.x - snapped.x);
-		if (!this.lock.y) result.y = this.current.point.y - (bl.y - snapped.y);
 		return result;
 	}
 

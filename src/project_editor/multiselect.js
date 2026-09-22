@@ -440,7 +440,7 @@ export class MultiSelectPoints extends MultiSelect {
 		if (this.singleHandle && this.singleton) {
 			this.members[0].setPathPointPosition(this.singleHandle, x, y);
 		} else {
-			log(this.members[this.active.i]);
+			// log(this.members[this.active.i]);
 			const p = this._active;
 			let d = {
 				x: x - this.members[p.i][p.handleType].coord.x,
