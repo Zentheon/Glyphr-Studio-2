@@ -53,19 +53,30 @@ dialog {
 	animation: var(--animate-fade-in);
 }
 
-.notation__path-add-point {
+.notation span {
+	font-family: monospace;
+}
+
+.notation label {
+	font-family: monospace;
+	color: var(--enabled-restingLight-lightText);
+}
+.notation label-small {
+	font-family: monospace;
+	color: var(--enabled-restingLight-lightText);
+	font-size: 0.8em;
+}
+
+.notation.path-add-point {
 	display: grid;
-	grid-template-columns: 20px min-content min-content;
+	grid-template-columns: 20px max-content;
 	margin: 0px 5px 2px 5px;
 }
 
-.notation__path-add-point span {
-	font-family: monospace;
-}
-
-.notation__path-add-point label {
-	font-family: monospace;
-	color: var(--enabled-restingLight-lightText);
+.notation.snap {
+    display: grid;
+    grid-template-columns: 20px max-content;
+    gap: 5px -5px;
 }
 
 #error {

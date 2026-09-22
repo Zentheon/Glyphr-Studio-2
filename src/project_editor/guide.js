@@ -5,29 +5,56 @@
 		custom guides to a Glyphr Studio Project.
 **/
 
+import { makeRandomSaturatedColor } from '../common/colors';
+
 export class Guide {
 	constructor(oa = {}) {
 		// log(`Guide.constructor`, 'start');
 		this.objType = 'Guide';
-		this.angle = oa.angle === 0 ? 0 : 90;
-		this.name = oa.name;
-		this.location = !isNaN(parseInt(oa.location)) ? parseInt(oa.location) : 200;
-		this.color = oa.color || defaultCustomGuideColor;
-		this.visible = !!oa.visible;
+		this._name = oa?.name ?? null;
+		this.enabled = oa?.enabled ?? true;
+		this.position = !isNaN(parseInt(oa.position)) ? parseInt(oa.position) : 200;
+		this.angle = oa?.angle ?? 90;
+		this.color = oa?.color ?? makeRandomSaturatedColor();
+		this.snapEnabled = oa?.snapEnabled ?? true;
+		this.snapLimit = oa?.snapLimit ?? 25;
 		// log(`Guide.constructor`, 'end');
 	}
 
-	save() {
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 */
+	snap(x, y, z) {
+		let result = { x, y, xHit: false, yHit: false };
+		if (this.snapEnabled) {
+			const limit = this.snapLimit / z;
+			if (this.angle === 0 && Math.abs(x - this.position) < limit) {
+				result.x = this.position;
+				result.xHit = true;
+			}
+			if (this.angle === 90 && Math.abs(y - this.position) < limit) {
+				result.y = this.position;
+				result.yHit = true;
+			}
+		}
+
+		return result;
+	}
+
+	save(system = false) {
 		let result = {};
 
-		let n = this.name;
-		if (n !== 'Horizontal guide' && n !== 'Vertical guide' && n !== 'Guide') {
-			result.name = this.name;
+		result.enabled = this.enabled;
+		result.name = this._name;
+		result.snapEnabled = this.snapEnabled;
+		result.snapLimit = this.snapLimit;
+		if (!system) {
+			result.position = this.position;
+			result.angle = this.angle;
+			result.color = this.color;
 		}
-		if (this.angle !== 90) result.angle = this.angle;
-		if (this.location !== 200) result.location = this.location;
-		if (this.color !== defaultCustomGuideColor) result.color = this.color;
-		if (!this.visible) result.visible = this.visible;
 
 		return result;
 	}
@@ -48,6 +75,81 @@ export class Guide {
 			else newName = 'Guide';
 		}
 		this._name = newName;
+	}
+}
+
+export class SystemGuides {
+	constructor(font, oa = {}) {
+		// log(`SystemGuides.constructor`, 'start');
+		this.objType = 'SystemGuides';
+
+		this.enabled = oa?.enabled ?? true;
+		this.showLabels = oa?.showLabels ?? false;
+		this.opacity = oa?.opacity ?? 30;
+		this.snapEnabled = oa?.snapEnabled ?? true;
+		this.snapLimit = oa?.snapLimit ?? 25;
+		this._horizontal = {};
+		this._vertical = {};
+
+		function initGuide(obj, key, enabled, angle, name, position, color) {
+			let directionKey;
+			directionKey = angle === 90 ? '_horizontal' : '_vertical';
+			obj[directionKey][key] = new Guide({
+				angle: angle,
+				name: oa.guides?.name?.[key]?.name ?? name,
+				position: position,
+				color: color,
+				enabled: oa.guides?.[key]?.enabled ?? enabled,
+				snapEnabled: oa.guides?.[key]?.enabled ?? true,
+				snapLimit: oa.guides?.[key]?.enabled ?? 25,
+			});
+		}
+
+		initGuide(this, 'ascent', false, 90, 'Ascent', font.ascent, guideColorMedium);
+		initGuide(this, 'capHeight', false, 90, 'Cap height', font.capHeight, guideColorLight);
+		initGuide(this, 'xHeight', false, 90, 'X height', font.xHeight, guideColorLight);
+		initGuide(this, 'baseline', true, 90, 'Baseline', 0, guideColorDark);
+		initGuide(this, 'descent', false, 90, 'Descent', font.descent, guideColorMedium);
+		initGuide(this, 'leftSide', true, 0, 'Left side', 0, guideColorDark);
+		initGuide(this, 'rightSide', true, 0, 'Right side', 0, guideColorDark);
+
+		// log(`Guide.constructor`, 'end');
+	}
+	save() {
+		let result = {};
+
+		result.enabled = this.enabled;
+		result.opacity = this.opacity;
+		result.snapEnabled = this.snapEnabled;
+		result.snapLimit = this.snapLimit;
+		result.guides = {};
+
+		for (let [key, guide] of Object.entries(this._horizontal)) {
+			result.guides[key] = guide.save(true);
+		}
+		for (let [key, guide] of Object.entries(this._vertical)) {
+			result.guides[key] = guide.save(true);
+		}
+		return result;
+	}
+	setProperty(guide, property, value) {
+		if (this._horizontal[guide]) {
+			this._horizontal[guide][property] = value;
+		} else if (this._vertical[guide]) {
+			this._vertical[guide][property] = value;
+		} else {
+			log(new Error(`system guide ${guide} does not exist`));
+		}
+	}
+	getHorizontal() {
+		return this._horizontal;
+	}
+	getVertical(item) {
+		this._vertical.rightSide.position = item.advanceWidth;
+		return this._vertical;
+	}
+	getAll(item) {
+		return { ...this.getHorizontal(), ...this.getVertical(item) };
 	}
 }
 

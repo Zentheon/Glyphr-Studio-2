@@ -1,5 +1,5 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 
 /**
 	// ----------------------------------------------------------------
@@ -12,25 +12,25 @@ export class Tool_Pan {
 		this.deltaY = 0;
 	}
 	mousedown() {
-		// log('PAN TOOL - mouse down: ' + eventHandlerData.mousePosition.x + ':' + eventHandlerData.mousePosition.y);
+		// log('PAN TOOL - mouse down: ' + eventHandlerData.current.mouse.c.x + ':' + eventHandlerData.current.mouse.c.y);
 		const editor = getCurrentProjectEditor();
 		let view = editor.view;
-		this.deltaX = eventHandlerData.mousePosition.x - view.dx;
-		this.deltaY = eventHandlerData.mousePosition.y - view.dy;
+		this.deltaX = ehd.current.mouse.c.x - view.dx;
+		this.deltaY = ehd.current.mouse.c.y - view.dy;
 		// log(`this.delta: ${this.deltaX}, ${this.deltaY}`);
-		eventHandlerData.isPanning = true;
+		ehd.isPanning = true;
 	}
 
 	mousemove() {
-		if (eventHandlerData.isPanning) {
+		if (ehd.isPanning) {
 			// Moving paths if mousedown
 			const editor = getCurrentProjectEditor();
-			// log(`ehd.mouse: ${eventHandlerData.mousePosition.x}, ${eventHandlerData.mousePosition.y}`);
+			// log(`ehd.mouse: ${eventHandlerData.current.mouse.c.x}, ${eventHandlerData.current.mouse.c.y}`);
 			// log(`this.delta: ${this.deltaX}, ${this.deltaY}`);
 
 			let update = {
-				dx: eventHandlerData.mousePosition.x - this.deltaX,
-				dy: eventHandlerData.mousePosition.y - this.deltaY,
+				dx: ehd.current.mouse.c.x - this.deltaX,
+				dy: ehd.current.mouse.c.y - this.deltaY,
 			};
 			// log(update);
 			editor.view = update;
@@ -40,7 +40,7 @@ export class Tool_Pan {
 
 	mouseup() {
 		// log('PAN TOOL - Mouse Up');
-		eventHandlerData.isPanning = false;
+		ehd.isPanning = false;
 		this.deltaX = 0;
 		this.deltaY = 0;
 	}

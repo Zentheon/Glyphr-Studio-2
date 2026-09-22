@@ -1,11 +1,12 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
+import { makeAndShowSnapNotation } from '../../controls/dialogs/dialogs.js';
 import { refreshPanel } from '../../panels/panels.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { isOverControlPoint } from '../detect_edit_affordances.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
-import { eventHandlerData } from '../events.js';
+import { ehd } from '../events.js';
 import { checkForMouseOverHotspot, clickEmptySpace, selectItemsInArea } from '../events_mouse.js';
 import { getShapeAtLocation, isPointNearShapeEdge } from './tools.js';
 
@@ -16,33 +17,30 @@ import { getShapeAtLocation, isPointNearShapeEdge } from './tools.js';
  */
 export class Tool_PathEdit {
 	constructor() {
-		this.dragging = false;
+		this.objType = 'Tool_PathEdit';
 		/** @type {Object | Boolean} */
 		this.overCurve = false;
+		this.draggingPoint = false;
 		this.draggingCurve = false;
-		eventHandlerData.selecting = false;
 		this.monitorForDeselect = false;
 		this.controlPoint = {};
 		this.pathPoint = {};
 		this.historyTitle = 'Path edit tool';
-		/** @type {Object | Boolean} */
-		eventHandlerData.initialPoint = false;
 	}
 
 	mousedown() {
 		// log('Tool_PathEdit.mousedown', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const msShapes = editor.multiSelect.shapes;
 		const view = editor.view;
-		ehd.lastX = ehd.mousePosition.x;
-		ehd.firstX = ehd.mousePosition.x;
-		ehd.lastY = ehd.mousePosition.y;
-		ehd.firstY = ehd.mousePosition.y;
+		// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.initial.mouse.c.x = ehd.current.mouse.c.x;
+		// ehd.last.mouse.c.y = ehd.current.mouse.c.y;
+		// ehd.initial.mouse.c.y = ehd.current.mouse.c.y;
 		this.historyTitle = 'Path edit tool';
 
-		const clickedPath = getShapeAtLocation(ehd.mousePosition.x, ehd.mousePosition.y);
+		const clickedPath = getShapeAtLocation(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		// log(`getShapeAtLocation:`);
 		// log(clickedPath);
@@ -50,8 +48,8 @@ export class Tool_PathEdit {
 		let checkPoints = ehd.isCtrlDown ? editor.selectedItem : msShapes.allPathPoints;
 		let clickDetection = isOverControlPoint(
 			checkPoints,
-			cXsX(ehd.mousePosition.x, view),
-			cYsY(ehd.mousePosition.y, view)
+			ehd.current.mouse.s.x,
+			ehd.current.mouse.s.y
 		);
 
 		if (clickDetection) {
@@ -61,13 +59,15 @@ export class Tool_PathEdit {
 			if (clickDetection.controlPoint === 'p') this.controlPoint = clickDetection.pathPoint.p;
 			if (clickDetection.controlPoint === 'h1') this.controlPoint = clickDetection.pathPoint.h1;
 			if (clickDetection.controlPoint === 'h2') this.controlPoint = clickDetection.pathPoint.h2;
+			ehd.ctxType = clickDetection.controlPoint;
 		}
 
 		if (this.controlPoint?.type) {
 			// log('detected CONTROL POINT');
-			this.dragging = true;
+			this.setInitialPoint();
+			// log(`set initial point x: ${ehd.initial.point.x}, y: ${ehd.initial.point.x}`);
+			this.draggingPoint = true;
 			const isPathPointSelected = msPoints.isSelected(this.pathPoint);
-			if (ehd.isShiftDown) this.setInitialPoint();
 
 			if (this.controlPoint.type === 'p') {
 				// log('detected P');
@@ -117,22 +117,24 @@ export class Tool_PathEdit {
 		} else {
 			// log('detected NOTHING');
 			if (!ehd.isCtrlDown) clickEmptySpace();
-			const clickedHotspot = findAndCallHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+			const clickedHotspot = findAndCallHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 			if (!clickedHotspot) ehd.selecting = true;
 			this.overCurve = false;
 			this.draggingCurve = false;
 		}
 
+		msPoints.setActive(this.pathPoint, ehd.ctxType);
+		// log(msPoints.active);
 		// if (msShapes.members.length) editor.nav.panel = 'Attributes';
 		// log('Tool_PathEdit.mousedown', 'end');
 	}
 
 	mousemove() {
 		// log('Tool_PathEdit.mousemove', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const view = editor.view;
+		ehd.ctxType = this.controlPoint.type;
 
 		// An easing function based on quint 'ease-in-out'
 		function calculateWeight(x) {
@@ -147,108 +149,72 @@ export class Tool_PathEdit {
 			this.controlPoint = msPoints.singleton.h2;
 
 			this.controlPoint.parent.h2.use = true;
-			this.controlPoint.parent.h2.x = cXsX(ehd.mousePosition.x, view);
-			this.controlPoint.parent.h2.y = cYsY(ehd.mousePosition.y, view);
+			this.controlPoint.parent.h2.x = ehd.current.mouse.s.x;
+			this.controlPoint.parent.h2.y = ehd.current.mouse.s.y;
 			msPoints.singleHandle = this.controlPoint.type;
 
 			this.historyTitle = `Added new path: ${this.pathPoint.parent.name}`;
-			this.dragging = true;
+			this.draggingPoint = true;
 
 			// log('toolHandoff this.controlPoint = ');
 			// log(this.controlPoint);
 		}
 
-		if (this.dragging) {
+		if (this.draggingPoint) {
 			// log('Dragging');
+			// msPoints.setActive(this.pathPoint, ehd.ctxType);
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
-			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
-			const cpt = this.controlPoint.type;
-			if (ehd.isShiftDown) this.setInitialPoint();
+			ehd.current.point = {
+				x: ehd.initial.point.x - ehd.current.offset.x,
+				y: ehd.initial.point.y - ehd.current.offset.y,
+			};
+			// log(`new point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
+			// log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
 
-			if (msPoints.members.length === 1) {
-				if (cpt === 'p') {
-					this.historyTitle = `Moved path point: ${this.pathPoint.pointNumber}`;
-				}
+			ehd.current.point = ehd.axisLock();
+			ehd.current.point = ehd.snapPoint();
 
-				// --------------------------------------------------------------
-				// Snapping
-				// --------------------------------------------------------------
-				if (ehd.isShiftDown) {
-					// Check for point snap to horizontal/vertical
-					if (cpt === 'p' || ehd.isCtrlDown) {
-						const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-						const base = { x: ehd.initialPoint.baseX, y: ehd.initialPoint.baseY };
-						const ang = calculateAngle(mouse, base);
-						if (isAngleMoreHorizontal(ang)) {
-							// Point is moving more horizontal, snap to mouse y
-							dx = mouse.x - this.controlPoint.x;
-							dy = ehd.initialPoint.baseY - this.controlPoint.y;
-						} else {
-							// Point is moving more vertical, snap to mouse x
-							dx = ehd.initialPoint.baseX - this.controlPoint.x;
-							dy = mouse.y - this.controlPoint.y;
-						}
-					} else if (typeof ehd.initialPoint?.angle === 'number') {
-						// Check for handle snap to original angle
-						const parentPoint = this.controlPoint.parent.p;
-						if (isAngleMoreHorizontal(ehd.initialPoint.angle)) {
-							// Handle is more horizontal, snap to mouse x
-							const base = this.controlPoint.x - parentPoint.x + dx;
-							const newY = base * Math.tan(ehd.initialPoint.angle) + parentPoint.y;
-							dy = newY - this.controlPoint.y;
-						} else {
-							// Handle is more vertical, snap to mouse y
-							const base = this.controlPoint.y - parentPoint.y + dy;
-							const newX = base / Math.tan(ehd.initialPoint.angle) + parentPoint.x;
-							dx = newX - this.controlPoint.x;
-						}
-					}
-				}
-				let guides = editor.project.settings.app.guides;
-				if (guides.gridShow && guides.gridSnap) {
-					let gridSquareSize = editor.project.settings.font.upm / guides.gridDivisions;
-					const mouse = { x: cXsX(ehd.mousePosition.x), y: cYsY(ehd.mousePosition.y) };
-					const mouseSnapped = {
-						x: Math.round(mouse.x / gridSquareSize) * gridSquareSize,
-						y: Math.round(mouse.y / gridSquareSize) * gridSquareSize,
-					};
-					dx = mouseSnapped.x - this.controlPoint.x;
-					dy = mouseSnapped.y - this.controlPoint.y;
+			if (msPoints.members.length === 1) {
+				if (ehd.ctxType === 'p') {
+					this.historyTitle = `Moved path point: ${this.pathPoint.pointNumber}`;
 				}
 
 				// --------------------------------------------------------------
 				// Locking
 				// --------------------------------------------------------------
-				if (this.controlPoint && this.controlPoint.xLock) dx = 0;
-				if (this.controlPoint && this.controlPoint.yLock) dy = 0;
+				if (this.controlPoint && this.controlPoint.xLock) ehd.current.point.x = 0;
+				if (this.controlPoint && this.controlPoint.yLock) ehd.current.point.y = 0;
 			} else {
-				if (cpt === 'p') {
+				if (ehd.ctxType === 'p') {
 					this.historyTitle = `Moved ${msPoints.members.length} path points`;
 				}
 			}
 
-			// log(`dx: ${dx}, dy: ${dy}`);
-			msPoints.updatePathPointPosition(dx, dy);
+			// log(`processed point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
 
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			// log(`dx: ${dx}, dy: ${dy}`);
+			msPoints.setPathPointPosition(ehd.current.point.x, ehd.current.point.y);
+			makeAndShowSnapNotation(ehd.current.point, ehd.snap.titles);
+
+			// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			// ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 			editor.publish(`currentPathPoint`, this.controlPoint.parent);
 			editor.publish('currentItem', editor.selectedItem);
 		} else if (ehd.selecting) {
 			selectItemsInArea(
-				ehd.lastX,
-				ehd.lastY,
-				ehd.mousePosition.x,
-				ehd.mousePosition.y,
+				ehd.initial.mouse.s.x,
+				ehd.initial.mouse.s.y,
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y,
 				'pathPoints'
 			);
 			editor.editCanvas.redraw('pathEdit:mousemove');
 		} else if (this.draggingCurve) {
+			// log(`Dragging curve`);
 			// Get the current path and path points
 			const parent = editor.multiSelect.shapes.singleton;
 			const p1 = parent.pathPoints[this.overCurve.point];
@@ -261,8 +227,8 @@ export class Tool_PathEdit {
 			editor.multiSelect.points.add(p2);
 
 			// Make the updates
-			let dx = (ehd.mousePosition.x - ehd.lastX) / view.dz;
-			let dy = (ehd.lastY - ehd.mousePosition.y) / view.dz;
+			let dx = (ehd.current.mouse.c.x - ehd.last.mouse.c.x) / view.dz;
+			let dy = (ehd.last.mouse.c.y - ehd.current.mouse.c.y) / view.dz;
 
 			if (!p1.h2.use && !p2.h1.use) {
 				// It's a line segment
@@ -290,8 +256,8 @@ export class Tool_PathEdit {
 			}
 
 			// Finish up
-			ehd.lastX = ehd.mousePosition.x;
-			ehd.lastY = ehd.mousePosition.y;
+			//ehd.last.mouse.c.x = ehd.current.mouse.c.x;
+			//ehd.last.mouse.c.y = ehd.current.mouse.c.y;
 			ehd.undoQueueHasChanged = true;
 			editor.publish(`currentPath`, parent);
 			editor.publish('currentItem', editor.selectedItem);
@@ -301,11 +267,10 @@ export class Tool_PathEdit {
 				this.overCurve = false;
 				let singleShape = editor.multiSelect.shapes.singleton;
 				if (singleShape && singleShape.objType !== 'ComponentInstance') {
-					let mousePoint = eventHandlerData.mousePosition;
-					if (isPointNearShapeEdge(singleShape, mousePoint.x, mousePoint.y)) {
+					if (isPointNearShapeEdge(singleShape, ehd.current.mouse.c.x, ehd.current.mouse.c.y)) {
 						let curvePoint = singleShape.findClosestPointOnCurve({
-							x: cXsX(mousePoint.x),
-							y: cYsY(mousePoint.y),
+							x: ehd.current.mouse.s.x,
+							y: ehd.current.mouse.s.y,
 						});
 						this.overCurve = curvePoint;
 						// log(`\t⮟this.overCurve⮟`);
@@ -315,7 +280,7 @@ export class Tool_PathEdit {
 			}
 		}
 
-		checkForMouseOverHotspot(ehd.mousePosition.x, ehd.mousePosition.y);
+		checkForMouseOverHotspot(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
 
 		// Figure out cursor
 		let hoverDetection;
@@ -326,8 +291,8 @@ export class Tool_PathEdit {
 
 			hoverDetection = isOverControlPoint(
 				editor.selectedItem,
-				cXsX(ehd.mousePosition.x, view),
-				cYsY(ehd.mousePosition.y, view)
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 
@@ -351,8 +316,8 @@ export class Tool_PathEdit {
 			// Single selection
 			hoverDetection = isOverControlPoint(
 				editor.multiSelect.shapes.allPathPoints,
-				cXsX(ehd.mousePosition.x, view),
-				cYsY(ehd.mousePosition.y, view)
+				ehd.current.mouse.s.x,
+				ehd.current.mouse.s.y
 			);
 			hcpIsSelected = hoverDetection && msPoints.isSelected(hoverDetection.pathPoint);
 			if (hoverDetection.controlPoint === 'p') {
@@ -375,7 +340,6 @@ export class Tool_PathEdit {
 
 	mouseup() {
 		// log('Tool_PathEdit.mouseup', 'start');
-		const ehd = eventHandlerData;
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		// const msShapes = editor.multiSelect.shapes;
@@ -396,40 +360,37 @@ export class Tool_PathEdit {
 		}
 
 		// set to defaults
-		this.dragging = false;
+		this.draggingPoint = false;
 		this.overCurve = false;
 		this.draggingCurve = false;
 		ehd.selecting = false;
 		this.controlPoint = false;
 		this.pathPoint = false;
 		this.monitorForDeselect = false;
-		ehd.initialPoint = false;
 		ehd.toolHandoff = false;
 		msPoints.singleHandle = false;
-		ehd.lastX = -100;
-		ehd.lastY = -100;
-		ehd.firstX = -100;
-		ehd.firstY = -100;
+		// ehd.last.mouse.c.x = -100;
+		// ehd.last.mouse.c.y = -100;
+		// ehd.initial.mouse.c.x = -100;
+		// ehd.initial.mouse.c.y = -100;
 
 		editor.publish('currentItem', editor.selectedItem);
 		// log('Tool_PathEdit.mouseup', 'end');
 	}
 
 	setInitialPoint() {
-		const ehd = eventHandlerData;
-		if (ehd.initialPoint !== false) return;
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
-		ehd.initialPoint = {};
-		if (this.controlPoint.type === 'p') {
-			ehd.initialPoint.angle = 0;
-		} else {
-			const handle = this.controlPoint.parent[this.controlPoint.type];
-			ehd.initialPoint.angle = calculateAngle(handle, handle.parent.p);
-		}
-		ehd.initialPoint.x = this.controlPoint.x;
-		ehd.initialPoint.y = this.controlPoint.y;
-		ehd.initialPoint.baseX = this.controlPoint.parent.p.x;
-		ehd.initialPoint.baseY = this.controlPoint.parent.p.y;
+		// log(`setting initial point`);
+		// ehd.initial.mouse.x = ehd.current.mouse.s.y;
+		// ehd.initial.mouse.y = ehd.current.mouse.s.y;
+
+		const handle = this.controlPoint?.parent?.[this.controlPoint.type];
+		ehd.initial.point.angle = handle ? calculateAngle(handle, handle.parent.p) : 0;
+		ehd.initial.point.x = this.controlPoint.x;
+		ehd.initial.point.y = this.controlPoint.y;
+		// ehd.initial.point.baseX = this.controlPoint?.parent?.p?.x;
+		// ehd.initial.point.baseY = this.controlPoint?.parent?.p?.y;
+		//
 		// log(`angle: ${ehd.initialPoint.angle}`);
 		// log(`point: ${ehd.initialPoint.x}, ${ehd.initialPoint.y}`);
 		// log(`base: ${ehd.initialPoint.baseX}, ${ehd.initialPoint.baseY}`);

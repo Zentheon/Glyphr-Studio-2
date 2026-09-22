@@ -7,7 +7,7 @@ import {
 	showModalDialog,
 	showToast,
 } from '../controls/dialogs/dialogs.js';
-import { eventHandlerData } from '../edit_canvas/events.js';
+import { ehd } from '../edit_canvas/events.js';
 import { selectTool } from '../edit_canvas/tools/tools.js';
 import { makeSingleLabel } from '../panels/cards.js';
 import { makeAllItemTypeChooserContent } from '../panels/item_chooser.js';
@@ -88,7 +88,7 @@ export function selectNextPathPoint() {
 		let nextIndex = path.getNextPointNumber(thisIndex);
 
 		selectedPoint = path.pathPoints[nextIndex];
-		if (eventHandlerData.isShiftDown) {
+		if (ehd.isShiftDown) {
 			msPoints.add(selectedPoint);
 		} else {
 			msPoints.select(selectedPoint);
@@ -119,7 +119,7 @@ export function selectPreviousPathPoint() {
 		let previousIndex = path.getPreviousPointNumber(thisIndex);
 
 		selectedPoint = path.pathPoints[previousIndex];
-		if (eventHandlerData.isShiftDown) {
+		if (ehd.isShiftDown) {
 			msPoints.add(selectedPoint);
 		} else {
 			msPoints.select(selectedPoint);

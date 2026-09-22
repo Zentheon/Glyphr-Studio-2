@@ -47,25 +47,6 @@ export function importGlyphrProjectFromText(importedProject) {
 	// Hydrate after all updates
 	const newProject = new GlyphrStudioProject(importedProject);
 
-	// Pull system guide visibility from project
-	const projectSystemGuides = newProject?.settings?.app?.guides?.systemGuides;
-	if (projectSystemGuides) {
-		// log(`\n⮟projectSystemGuides⮟`);
-		// log(projectSystemGuides);
-		const editor = getCurrentProjectEditor();
-		editor.systemGuides = {
-			ascent: projectSystemGuides.includes('ascent'),
-			capHeight: projectSystemGuides.includes('capHeight'),
-			xHeight: projectSystemGuides.includes('xHeight'),
-			baseline: projectSystemGuides.includes('baseline'),
-			descent: projectSystemGuides.includes('descent'),
-			leftSide: projectSystemGuides.includes('leftSide'),
-			rightSide: projectSystemGuides.includes('rightSide'),
-		};
-		// log(`\n⮟editor.systemGuides⮟`);
-		// log(editor.systemGuides);
-	}
-
 	// log('importGlyphrProjectFromText', 'end');
 	return newProject;
 }
@@ -175,7 +156,7 @@ function migrate__v1_13_2_to_v2_0_0(oldProject) {
 	// Metadata
 	const newPreferences = newProject.settings.app;
 	const newRanges = newProject.settings.project.characterRanges;
-	const newGuides = newProject.settings.app.guides;
+	const newGuides = newProject.settings.guides;
 	const newFont = newProject.settings.font;
 	const oldSettings = oldProject.projectsettings;
 	const oldRanges = oldProject.projectsettings.glyphrange;
@@ -207,14 +188,14 @@ function migrate__v1_13_2_to_v2_0_0(oldProject) {
 	newPreferences.contextCharacters.transparency = oldColors.contextglyphtransparency || 90;
 
 	// Guides
-	newGuides.systemTransparency = oldColors.systemguidetransparency || 70;
-	newGuides.customTransparency = oldColors.systemguidetransparency || 70;
-	newGuides.gridDivisions = oldSettings.griddivisions;
-	newGuides.gridSnap = oldSettings.snaptogrid;
+	newGuides.system.opacity = 100 - (oldColors.systemguidetransparency || 70);
+	newGuides.custom.opacity = 100 - (oldColors.systemguidetransparency || 70);
+	newGuides.grids.divisions = oldSettings.griddivisions;
+	newGuides.grids.snap = oldSettings.snaptogrid;
 	// Seems it's a string in v1 ???
 	let gridTransparency = Number(oldColors.gridtransparency);
-	newGuides.gridShow = gridTransparency !== 100;
-	newGuides.gridTransparency = gridTransparency;
+	newGuides.grids.enable = gridTransparency !== 100;
+	newGuides.grids.opacity = 100 - gridTransparency;
 	if (oldGuides && Object.keys(oldGuides).length) {
 		Object.keys(oldGuides).forEach((key) => {
 			let oldGuide = oldGuides[key];

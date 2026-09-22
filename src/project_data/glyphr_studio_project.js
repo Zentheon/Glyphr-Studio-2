@@ -9,7 +9,8 @@ import { makeComponentID } from '../pages/components.js';
 import { makeKernGroupID } from '../pages/kerning.js';
 import { makeLigatureID } from '../pages/ligatures.js';
 import { Glyph } from '../project_data/glyph.js';
-import { Guide } from '../project_editor/guide.js';
+import { Grid } from '../project_editor/grid.js';
+import { Guide, SystemGuides } from '../project_editor/guide.js';
 import { basicLatinOrder, CharacterRange } from './character_range.js';
 import { ComponentInstance } from './component_instance.js';
 import { KernGroup } from './kern_group.js';
@@ -66,21 +67,6 @@ export class GlyphrStudioProject {
 				highlightPointsNearHandles: 2,
 				highlightPointsNearXZero: 2,
 				highlightPointsNearYZero: 2,
-				guides: {
-					drawGuidesOnTop: false,
-					systemShowGuides: true,
-					systemShowLabels: false,
-					systemTransparency: 70,
-					systemGuides: ['baseline', 'leftSide', 'rightSide'],
-					customShowGuides: true,
-					customShowLabels: false,
-					customTransparency: 70,
-					custom: [],
-					gridShow: false,
-					gridTransparency: 90,
-					gridDivisions: 10,
-					gridSnap: false,
-				},
 				contextCharacters: {
 					showCharacters: false,
 					characterTransparency: 20,
@@ -125,6 +111,22 @@ export class GlyphrStudioProject {
 				overlinePosition: 750,
 				overlineThickness: 10,
 			},
+			guides: {
+				drawOnTop: false,
+				system: undefined,
+				custom: {
+					enabled: true,
+					showLabels: false,
+					opacity: 30,
+					guides: [],
+				},
+				grids: {
+					enabled: false,
+					opacity: 10,
+					divisions: 10,
+					snap: false,
+				},
+			},
 		};
 
 		this.glyphs = {};
@@ -150,14 +152,15 @@ export class GlyphrStudioProject {
 		// Project ID
 		this.settings.project.id = this.settings.project.id || makeProjectID();
 
-		// Guides
-		const newGuides = newProject?.settings?.app?.guides;
-		if (newGuides?.systemGuides) {
-			this.settings.app.guides.systemGuides = clone(newGuides.systemGuides);
-		}
-		if (newGuides?.custom) {
-			this.settings.app.guides.custom = [];
-			newGuides.custom.forEach((guide) => this.settings.app.guides.custom.push(new Guide(guide)));
+		// System guides
+		const newGuides = newProject?.settings?.guides;
+		this.settings.guides.system = new SystemGuides(this.settings.font, newGuides?.system);
+		// Custom guides
+		if (newGuides?.custom?.guides) {
+			this.settings.guides.custom.guides = [];
+			newGuides.custom.guides.forEach((guide) =>
+				this.settings.guides.custom.guides.push(new Guide(guide))
+			);
 		}
 
 		// Character Ranges
@@ -254,10 +257,12 @@ export class GlyphrStudioProject {
 			savedProject.settings.app.livePreviews.push(preview.save());
 		});
 
-		// Overwriting guides with .save() version
-		savedProject.settings.app.guides.custom = [];
-		this.settings.app.guides.custom.forEach((guide) => {
-			savedProject.settings.app.guides.custom.push(guide.save());
+		// Overwriting system guides with .save() version
+		savedProject.settings.guides.system = this.settings.guides.system.save();
+		// Overwriting custom guides with .save() version
+		savedProject.settings.guides.custom.guides = [];
+		this.settings.guides.custom.guides.forEach((guide) => {
+			savedProject.settings.guides.custom.guides.push(guide.save());
 		});
 
 		/**
