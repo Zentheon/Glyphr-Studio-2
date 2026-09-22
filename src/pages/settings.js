@@ -8,6 +8,7 @@ import { makeSettingsTabContentApp } from './settings_app.js';
 import settingsMap from './settings_data.js';
 import { makeSettingsTabContentFont } from './settings_font.js';
 import { makeSettingsTabContentProject } from './settings_project.js';
+import { makeSettingsTabContentAppearance } from './settings_theme.js';
 
 /**
  * Page > Settings
@@ -41,6 +42,7 @@ export function makePage_Settings() {
 	tabControl.registerTab('Project', makeSettingsTabContentProject);
 	tabControl.registerTab('Font', makeSettingsTabContentFont);
 	tabControl.registerTab('App', makeSettingsTabContentApp);
+	tabControl.registerTab('Appearance', makeSettingsTabContentAppearance);
 
 	addAsChildren(panelArea, tabControl.makeTabs());
 	tabControl.selectTab('Project');

@@ -302,4 +302,16 @@ export default {
 			type: `Em`,
 		},
 	},
+	appearance: {
+		handleSize: {
+			label: `Handle size`,
+			description: `How large (in pixels) the control point sizes are in the editor.`,
+			type: `Number`,
+		},
+		multiSelectThickness: {
+			label: `Multi-select outline thickness`,
+			description: `The size of the outline when selecting multiple objects.`,
+			type: `Number`,
+		},
+	},
 };
