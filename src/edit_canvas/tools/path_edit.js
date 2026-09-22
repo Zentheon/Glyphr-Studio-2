@@ -1,4 +1,4 @@
-import { getCurrentProjectEditor } from '../../app/main.js';
+import { getConfigGroup, getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
 import { makeAndShowSnapNotation } from '../../controls/dialogs/dialogs.js';
 import { refreshPanel } from '../../panels/panels.js';
@@ -263,7 +263,7 @@ export class Tool_PathEdit {
 			editor.publish('currentItem', editor.selectedItem);
 		} else {
 			const editor = getCurrentProjectEditor();
-			if (editor.project.settings.app.directlyDragCurves) {
+			if (getConfigGroup('app').directlyDragCurves) {
 				this.overCurve = false;
 				let singleShape = editor.multiSelect.shapes.singleton;
 				if (singleShape && singleShape.objType !== 'ComponentInstance') {

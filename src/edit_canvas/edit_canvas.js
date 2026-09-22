@@ -1,4 +1,4 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import { getConfigGroup, getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
 import {
 	accentColors,
 	getColorFromRGBA,
@@ -214,7 +214,7 @@ export class EditCanvas extends HTMLElement {
 			}
 
 			// Draw glyphs
-			if (project.settings.app.canvasDisplayModeFilled) {
+			if (getConfigGroup('app').canvasDisplayModeFilled) {
 				drawGlyph(currentItem, ctx, view);
 			} else {
 				drawGlyphOutlineMode(currentItem, ctx, view);
@@ -266,7 +266,7 @@ export class EditCanvas extends HTMLElement {
 				if (guidesSettings.custom.enabled) drawCustomGuidelines();
 			}
 
-			const contextCharacterSettings = editor.project.settings.app.contextCharacters;
+			const contextCharacterSettings = getConfigGroup('app').contextCharacters;
 			// Context characters
 			if (contextCharacterSettings.showCharacters) {
 				drawContextCharacters(ctx);
@@ -344,8 +344,8 @@ export class EditCanvas extends HTMLElement {
 
 		function drawSystemGuidelines(drawVerticals = true) {
 			// log(`drawSystemGuidelines`, 'start');
-			const alpha = opacityToAlpha(project.settings.guides.system.opacity);
-			const showLabels = project.settings.guides.system.showLabels;
+			const alpha = opacityToAlpha(getConfigGroup('guides').system.opacity);
+			const showLabels = getConfigGroup('guides').system.showLabels;
 			// Horizontals
 			let horizontals = project.settings.guides.system.getHorizontal();
 			for (let [key, guide] of Object.entries(horizontals)) {
@@ -401,7 +401,7 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawCustomGuidelines() {
-			const custom = getCurrentProject().settings.guides.custom;
+			const custom = getConfigGroup('guides').custom;
 
 			if (custom.enabled) {
 				let alpha = opacityToAlpha(custom.opacity);
@@ -422,14 +422,14 @@ export class EditCanvas extends HTMLElement {
 		}
 
 		function drawGrid() {
-			const gridSquareSize = editor.project.settings.font.upm / 10;
+			const gridSquareSize = getConfigGroup('font').upm / getConfigGroup('guides').grids.divisions;
 			let x0 = Math.floor(cXsX(0) / gridSquareSize) * gridSquareSize;
 			let x1 = Math.ceil(cXsX(width) / gridSquareSize) * gridSquareSize;
 			let y0 = Math.floor(cYsY(height) / gridSquareSize) * gridSquareSize;
 			let y1 = Math.ceil(cYsY(0) / gridSquareSize) * gridSquareSize;
 
 			// log(`fill: ${fill}`);
-			let alpha = opacityToAlpha(editor.project.settings.guides.grids.opacity);
+			let alpha = opacityToAlpha(getConfigGroup('guides').grids.opacity);
 			const fill = getColorFromRGBA(gridColor, alpha);
 			ctx.fillStyle = fill;
 			for (let x = x0; x <= x1; x += gridSquareSize) {

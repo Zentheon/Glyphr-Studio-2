@@ -37,6 +37,11 @@ export function importGlyphrProjectFromText(importedProject) {
 		importedProject = migrate__v2_0_0_to_v2_5_0(importedProject);
 	}
 
+	// Apply v2.11 setting API changes
+	if (version.major === 2 && version.minor < 11) {
+		importedProject = migrate__v2_10_to_v2_11(importedProject);
+	}
+
 	// Update the version
 	const app = getGlyphrStudioApp();
 	importedProject.settings.project.latestVersion = app.version;
@@ -49,6 +54,21 @@ export function importGlyphrProjectFromText(importedProject) {
 
 	// log('importGlyphrProjectFromText', 'end');
 	return newProject;
+}
+
+// --------------------------------------------------------------
+// Migrate v2.10 to v2.11
+// --------------------------------------------------------------
+/**
+ * v2.11 introduced separation of program (app) and project settings
+ * @param {GlyphrStudioProject} project - Old project data
+ * @returns {GlyphrStudioProject} - Updated project data
+ */
+function migrate__v2_10_to_v2_11(project) {
+	project.settings.project.guides = project.settings.app.guides;
+	delete project.settings.app;
+
+	return project;
 }
 
 // --------------------------------------------------------------
@@ -154,7 +174,6 @@ function migrate__v1_13_2_to_v2_0_0(oldProject) {
 	});
 
 	// Metadata
-	const newPreferences = newProject.settings.app;
 	const newRanges = newProject.settings.project.characterRanges;
 	const newGuides = newProject.settings.guides;
 	const newFont = newProject.settings.font;
@@ -180,12 +199,12 @@ function migrate__v1_13_2_to_v2_0_0(oldProject) {
 	if (oldRanges.latinextendedb) newRanges.push(unicodeRanges.latinExtendedB);
 	if (oldRanges.custom.length) oldRanges.custom.forEach((range) => newRanges.push(range));
 
-	// Preferences
+	// Preferences (No longer project-defined)
 	// newPreferences.showNonCharPoints = oldSettings.glyphrange.filternoncharpoints || true;
-	newPreferences.stopPageNavigation = oldSettings.stoppagenavigation || true;
-	newPreferences.formatSaveFile = oldSettings.formatsavefile || true;
-	newPreferences.contextCharacters.showGuides = oldSettings.showcontextglyphguides || true;
-	newPreferences.contextCharacters.transparency = oldColors.contextglyphtransparency || 90;
+	// newPreferences.stopPageNavigation = oldSettings.stoppagenavigation || true;
+	// newPreferences.formatSaveFile = oldSettings.formatsavefile || true;
+	// newPreferences.contextCharacters.showGuides = oldSettings.showcontextglyphguides || true;
+	// newPreferences.contextCharacters.transparency = oldColors.contextglyphtransparency || 90;
 
 	// Guides
 	newGuides.system.opacity = 100 - (oldColors.systemguidetransparency || 70);

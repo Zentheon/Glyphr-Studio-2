@@ -1,4 +1,9 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import {
+	getConfigGroup,
+	getCurrentProject,
+	getCurrentProjectEditor,
+	getGlyphrStudioApp,
+} from '../app/main.js';
 import { makeRandomSaturatedColor, parseColorString, rgbToHex } from '../common/colors.js';
 import { addAsChildren, makeElement } from '../common/dom.js';
 import { round } from '../common/functions.js';
@@ -177,7 +182,7 @@ function makeCustomGuidesCard() {
 		innerHTML: '<h3>Custom guides</h3>',
 	});
 
-	const custom = getCurrentProject().settings.guides.custom;
+	const custom = getConfigGroup('guides').custom;
 
 	if (custom.guides.length) {
 		custom.guides.forEach((guide, number) => {
@@ -217,7 +222,7 @@ function makeCustomGuideRow(guide, number) {
 	const deleteButton = makeActionButton({ iconName: 'delete', title: 'Delete guide' });
 	deleteButton.setAttribute('class', 'guide-delete-button');
 	deleteButton.addEventListener('click', () => {
-		const guides = getCurrentProject().settings.guides.custom.guides;
+		const guides = getConfigGroup('guides').custom;
 		guides.splice(number, 1);
 		refreshGuideChange();
 	});
@@ -245,7 +250,7 @@ function makeCustomGuideRow(guide, number) {
 		angleButton.querySelector('g').setAttribute('fill', rgbString);
 
 		// Update guide
-		const guide = getCurrentProject().settings.guides.custom.guides[number];
+		const guide = getConfigGroup('guides').custom.guides[number];
 		guide.color = rgbString;
 		getCurrentProjectEditor().editCanvas.redraw('guides custom color change');
 	});
@@ -267,7 +272,7 @@ function makeCustomGuideRow(guide, number) {
 		});
 	}
 	angleButton.addEventListener('click', () => {
-		const guide = getCurrentProject().settings.guides.custom.guides[number];
+		const guide = getConfigGroup('guides').custom.guides[number];
 		if (guide.angle === 90) {
 			guide.angle = 0;
 			guide.name = guide.name.replace('Horizontal', 'Vertical');
@@ -286,7 +291,7 @@ function makeCustomGuideRow(guide, number) {
 }
 
 function makeGridCard() {
-	const grids = getCurrentProject().settings.guides.grids;
+	const grids = getConfigGroup('guides').grids;
 	const gridCard = makeElement({
 		className: 'panel__card guides-card__grid',
 		innerHTML: '<h3>Grid</h3>',

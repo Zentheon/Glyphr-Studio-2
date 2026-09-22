@@ -1,4 +1,4 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../../app/main.js';
+import { getConfigGroup, getCurrentProject, getCurrentProjectEditor } from '../../app/main.js';
 import { insertAfter, makeElement } from '../../common/dom.js';
 import { Path } from '../../project_data/path.js';
 import { PathPoint } from '../../project_data/path_point.js';
