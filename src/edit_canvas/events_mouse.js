@@ -1,16 +1,12 @@
 import { getCurrentProjectEditor } from '../app/main.js';
+import { clone } from '../common/functions.js';
 import { closeAllNotations, closeEveryTypeOfDialog } from '../controls/dialogs/dialogs.js';
 import { Maxes, maxesOverlap } from '../project_data/maxes.js';
 import { findAndUnderlineHotspot, isHotspotHere } from './context_characters.js';
 import { setCursor } from './cursors.js';
 import { canvasUIPointSize } from './draw_edit_affordances.js';
 import { cXsX, cYsY } from './edit_canvas.js';
-import {
-	cancelDefaultEventActions,
-	eventHandlerData,
-	togglePanOff,
-	togglePanOn,
-} from './events.js';
+import { ehd } from './events.js';
 
 // --------------------------------------------------------------
 // Mouse Events
@@ -26,17 +22,34 @@ export function handleMouseEvents(event) {
 	// log(`Raw mouse event x/y = ${event.layerX} / ${event.layerY}`);
 	// log(event);
 
-	if (event.type === 'mousedown' && typeof event.button === 'number') closeEveryTypeOfDialog();
-
-	const ehd = eventHandlerData;
 	const editor = getCurrentProjectEditor();
+	const view = editor.view;
 
-	ehd.mousePosition = getMousePositionData(event);
+	ehd.last = clone(ehd.current);
+	ehd.current.mouse.c = getMousePositionData(event);
+	ehd.current.mouse.s = {
+		x: cXsX(ehd.current.mouse.c.x, view),
+		y: cYsY(ehd.current.mouse.c.y, view),
+	};
+	ehd.current.zoom = view.dz;
+
+	if (event.type === 'mousedown') {
+		if (typeof event.button === 'number') closeEveryTypeOfDialog();
+		ehd.initial.mouse = clone(ehd.current.mouse);
+		ehd.dragging = true;
+	} else if (event.type === 'mouseup') {
+		ehd.dragging = false;
+	}
+
+	ehd.current.offset = {
+		x: ehd.initial.mouse.s.x - ehd.current.mouse.s.x,
+		y: ehd.initial.mouse.s.y - ehd.current.mouse.s.y,
+	};
 
 	// Mouse back & forward buttons
 	if (event.button === 3 || event.button === 4) {
 		// Don't navigate
-		cancelDefaultEventActions(event);
+		ehd.cancelDefaultEventActions(event);
 		return;
 	}
 
@@ -48,10 +61,10 @@ export function handleMouseEvents(event) {
 	// Mouse wheel-click
 	if (event.button === 1) {
 		if (event.type === 'mousedown') {
-			togglePanOn(event);
+			ehd.togglePanOn(event);
 		}
 		if (event.type === 'mouseup') {
-			togglePanOff(event);
+			ehd.togglePanOff(event);
 		}
 		// return;
 	}
@@ -143,10 +156,7 @@ export function clickEmptySpace() {
  */
 
 export function selectItemsInArea(x1, y1, x2, y2, type = 'pathPoints') {
-	x1 = cXsX(x1);
-	y1 = cYsY(y1);
-	x2 = cXsX(x2);
-	y2 = cYsY(y2);
+	// log(`selecting, type: ${type}`);
 	const minX = Math.min(x1, x2);
 	const minY = Math.min(y1, y2);
 	const maxX = Math.max(x1, x2);
@@ -156,7 +166,7 @@ export function selectItemsInArea(x1, y1, x2, y2, type = 'pathPoints') {
 	let shouldPublish = true;
 	const msPoints = editor.multiSelect.points;
 	const msShapes = editor.multiSelect.shapes;
-	const isCtrlDown = eventHandlerData.isCtrlDown;
+	const isCtrlDown = ehd.isCtrlDown;
 
 	if (type === 'pathPoints') {
 		msPoints.allowPublishing = false;
@@ -204,17 +214,17 @@ export function resizePath() {
 	const editor = getCurrentProjectEditor();
 	let selected = editor.multiSelect.shapes;
 	// log(selected);
-	let resizeCorner = eventHandlerData.handle;
+	let resizeCorner = ehd.handle;
 	// log('handle ' + resizeCorner);
 
-	let mx = cXsX(eventHandlerData.mousePosition.x);
-	let my = cYsY(eventHandlerData.mousePosition.y);
-	let lx = cXsX(eventHandlerData.lastX);
-	let ly = cYsY(eventHandlerData.lastY);
+	let mx = ehd.current.mouse.s.x;
+	let my = ehd.current.mouse.s.y;
+	let lx = ehd.last.mouse.s.x;
+	let ly = ehd.last.mouse.s.y;
 	let dh = ly - my;
 	let dw = lx - mx;
 	// let rl = selected.virtualGlyph.ratioLock || false;
-	let rl = selected.ratioLock || eventHandlerData.isShiftDown;
+	let rl = selected.ratioLock || ehd.isShiftDown;
 
 	// Check that the path won't have negative dimensions
 	let maxes = selected.maxes;
@@ -386,12 +396,11 @@ export function checkForMouseOverHotspot(x, y) {
 	if (isHotspotHere(x, y)) {
 		let hs = findAndUnderlineHotspot(x, y);
 		setCursor('pointer');
-		if (hs !== eventHandlerData.canvasHotspotHovering)
-			editor.publish('editCanvasView', editor.view);
-		eventHandlerData.canvasHotspotHovering = hs;
+		if (hs !== ehd.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
+		ehd.canvasHotspotHovering = hs;
 	} else {
-		if (eventHandlerData.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
-		eventHandlerData.canvasHotspotHovering = false;
+		if (ehd.canvasHotspotHovering) editor.publish('editCanvasView', editor.view);
+		ehd.canvasHotspotHovering = false;
 	}
 }
 
@@ -476,9 +485,9 @@ export function handleMouseWheel(event) {
 
 	if (canZoom) {
 		if (event.ctrlKey || event.metaKey) {
-			cancelDefaultEventActions(event);
+			ehd.cancelDefaultEventActions(event);
 			closeAllNotations();
-			eventHandlerData.hoverPoint = false;
+			ehd.hoverPoint = false;
 			// log('MOUSEWHEEL: canZoom=true and delta=' + delta );
 			if (delta > 0) {
 				editor.updateViewZoom(1.1, mouse);

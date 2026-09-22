@@ -1405,3 +1405,23 @@ export class Path extends GlyphElement {
 		return false;
 	}
 }
+
+/**
+ * @param {Path[]} paths
+ * @param {number} x
+ * @param {number} y
+ */
+export function findClosestPointAcrossPaths(paths, x, y) {
+	let best = null;
+	for (const path of paths) {
+		const point = path.findClosestPointOnCurve({ x, y });
+		if (!point) continue;
+		const dx = point.x - x;
+		const dy = point.y - y;
+		const d2 = dx * dx + dy * dy;
+		if (best === null || d2 < best.d2) {
+			best = { ...point, d2 };
+		}
+	}
+	return best ? { x: best.x, y: best.y } : null;
+}

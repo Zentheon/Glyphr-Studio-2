@@ -97,17 +97,6 @@ export class ProjectEditor {
 		this._views = {};
 		this.defaultView = { dx: -1000, dy: -1000, dz: 0.5, default: true };
 
-		// Guides
-		this.systemGuides = {
-			ascent: false,
-			capHeight: false,
-			xHeight: false,
-			baseline: true,
-			descent: false,
-			leftSide: true,
-			rightSide: true,
-		};
-
 		// Pop Out Window
 		/** @type {HTMLElement | false} */
 		this.popOutWindow = false;

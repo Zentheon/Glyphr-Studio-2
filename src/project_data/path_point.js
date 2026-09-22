@@ -255,6 +255,58 @@ export class PathPoint extends GlyphElement {
 	/**
 	 * Updates position based on deltas
 	 * @param {String} controlPoint - p / h1 / h2
+	 * @param {Number} x - new x
+	 * @param {Number} y - new y
+	 */
+	setPathPointPosition(controlPoint = 'p', x = 0, y = 0) {
+		// log(`PathPoint.setPathPointPosition`, 'start');
+		// log(`control point ${controlPoint} x ${x} y ${y}`);
+
+		x = parseNumber(x);
+		y = parseNumber(y);
+
+		x = Number.isFinite(x) ? x : 0;
+		y = Number.isFinite(y) ? y : 0;
+
+		switch (controlPoint) {
+			case 'p':
+				// log('moving p / h1 / h2');
+				this.h1.coord.x -= this.p.coord.x - x;
+				this.h1.coord.y -= this.p.coord.y - y;
+
+				this.h2.coord.x -= this.p.coord.x - x;
+				this.h2.coord.y -= this.p.coord.y - y;
+
+				this.p.coord.x = x;
+				this.p.coord.y = y;
+				break;
+
+			case 'h1':
+				// log('moving h1');
+				this.h1.coord.x = x;
+				this.h1.coord.y = y;
+				if (this.h1.use) {
+					if (this.type === 'symmetric') this.makeSymmetric('h1');
+					else if (this.type === 'flat') this.makeFlat('h1');
+				}
+				break;
+
+			case 'h2':
+				// log('moving h2');
+				this.h2.coord.x = x;
+				this.h2.coord.y = y;
+				if (this.h2.use) {
+					if (this.type === 'symmetric') this.makeSymmetric('h2');
+					else if (this.type === 'flat') this.makeFlat('h2');
+				}
+				break;
+		}
+		// log(`PathPoint.setPathPointPosition`, 'end');
+	}
+
+	/**
+	 * Updates position based on deltas
+	 * @param {String} controlPoint - p / h1 / h2
 	 * @param {Number} dx - delta x
 	 * @param {Number} dy - delta y
 	 */

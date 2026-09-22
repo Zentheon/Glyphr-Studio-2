@@ -1,6 +1,6 @@
 import { getCurrentProjectEditor } from '../app/main.js';
 import { makeElement } from '../common/dom.js';
-import { eventHandlerData } from '../edit_canvas/events.js';
+import { ehd } from '../edit_canvas/events.js';
 import { showAddComponentDialog } from '../pages/components.js';
 import { showAddLigatureDialog } from '../pages/ligatures.js';
 import { makeCard_componentInstanceAttributes } from './card_component_instance.js';
@@ -29,7 +29,7 @@ export function makePanel_GlyphAttributes() {
 
 	// log(`msPoints.length: ${msPoints.length}`);
 	// if (eventHandlerData.selecting && (msShapes.length > 0 || msPoints.length > 0)) {
-	if (eventHandlerData.selecting) {
+	if (ehd.selecting) {
 		// log('makePanel_GlyphAttributes', 'end');
 		return [makeCard_dragToSelectSummary()];
 	}

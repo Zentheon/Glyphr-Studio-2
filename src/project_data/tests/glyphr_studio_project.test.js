@@ -15,13 +15,16 @@ describe('GlyphrStudioProject Tests', () => {
 				characterRanges: [],
 			},
 			app: {
-				guides: {
-					custom: [],
-				},
 				livePreviews: [],
 			},
 			font: {
 				family: 'My Font',
+			},
+			guides: {
+				custom: {
+					enabled: true,
+					guides: [],
+				},
 			},
 		},
 		glyphs: {},
