@@ -2,7 +2,6 @@ import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, clone } from '../../common/functions.js';
 import { refreshPanel } from '../../panels/panels.js';
 import { isMaxes } from '../../project_data/maxes.js';
-import { Snap } from '../../project_editor/snap.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { cXsX, cYsY } from '../edit_canvas.js';
@@ -79,7 +78,7 @@ export class Tool_Resize {
 				// log(`ehd.rotationStartMaxesTopY: ${ehd.rotationStartMaxesTopY}`);
 				this.historyTitle = 'Rotated shape';
 			} else {
-				log('clicked on ehd.handle: ' + ehd.handle);
+				// log('clicked on ehd.handle: ' + ehd.handle);
 				this.resizing = true;
 			}
 			setCursor(ehd.handle);
@@ -121,7 +120,6 @@ export class Tool_Resize {
 		const editor = getCurrentProjectEditor();
 		const view = editor.view;
 		const msShapes = editor.multiSelect.shapes;
-		const snap = new Snap();
 		this.didStuff = false;
 		const corner =
 			ehd.handle || msShapes.isOverBoundingBoxHandle(ehd.current.mouse.c.x, ehd.current.mouse.c.y);
@@ -201,8 +199,8 @@ export class Tool_Resize {
 				this.historyTitle = `Moved ${msShapes.members.length} shapes`;
 			}
 
-			ehd.current.point = snap.axisLock();
-			ehd.current.point = snap.snapBoundingBox();
+			ehd.current.point = ehd.axisLock();
+			ehd.current.point = ehd.snapBoundingBox();
 
 			msShapes.setShapePosition(ehd.current.point.x, ehd.current.point.y);
 			this.monitorForDeselect = false;
@@ -312,7 +310,7 @@ export class Tool_Resize {
 		const editor = getCurrentProjectEditor();
 		// log(`Tool_Resize.setInitialPoint`, 'start');
 		if (this.clickedShape && typeof this.clickedShape === 'object') {
-			log(`setting initial point`);
+			// log(`setting initial point`);
 			// ehd.initial.mouse.x = ehd.current.mouse.s.y;
 			// ehd.initial.mouse.y = ehd.current.mouse.s.y;
 

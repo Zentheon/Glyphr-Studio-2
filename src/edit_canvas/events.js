@@ -1,6 +1,9 @@
 import { getCurrentProjectEditor } from '../app/main.js';
-import { showToast } from '../controls/dialogs/dialogs.js';
+import { calculateAngle } from '../common/functions.js';
+import { makeAndShowSnapNotation, showToast } from '../controls/dialogs/dialogs.js';
 import { Maxes } from '../project_data/maxes.js';
+import { Grid } from '../project_editor/grid.js';
+import { ProjectEditor } from '../project_editor/project_editor.js';
 import { setCursor, updateCursor } from './cursors.js';
 import { handleDropSVGonEditCanvas } from './events_drag_drop_paste.js';
 import { handleKeyPress, handleKeyUp } from './events_keyboard.js';
@@ -10,7 +13,7 @@ import { Tool_NewBasicPath } from './tools/new_basic_path.js';
 import { Tool_NewPath } from './tools/new_path.js';
 import { Tool_Pan } from './tools/pan.js';
 import { Tool_PathAddPoint } from './tools/path_add_point.js';
-import { Tool_PathEdit } from './tools/path_edit.js';
+import { isAngleMoreHorizontal, Tool_PathEdit } from './tools/path_edit.js';
 import { Tool_Resize } from './tools/resize.js';
 
 // --------------------------------------------------------------
@@ -24,7 +27,6 @@ export class EventHandlerData {
 		this.newBasicPath = {};
 		this.selecting = false;
 		this.dragging = false;
-		// mousePosition= {};
 		this.initial = {
 			point: { x: 0, y: 0 },
 			mouse: {
@@ -55,6 +57,8 @@ export class EventHandlerData {
 			/** @type {Maxes | null} */
 			maxes: null,
 		};
+		this.lock = { x: false, y: false };
+		this.snap = { titles: { x: '', y: '' } };
 		this.handle = '';
 		this.rotationStartCenter = {};
 		this.rotationStartMaxesTopY = -100;
@@ -186,6 +190,144 @@ export class EventHandlerData {
 		if (event.stopPropagation) event.stopPropagation();
 		// log(`cancelDefaultEventActions`, 'end');
 		return false;
+	}
+
+	// --------------------------------------------------------------
+	// Snapping
+	// --------------------------------------------------------------
+
+	/**
+	 * @param {number } x
+	 * @param {number} y
+	 * @param {ProjectEditor} editor - working editor
+	 */
+	snapPoint(
+		x = this.current.point.x,
+		y = this.current.point.y,
+		editor = getCurrentProjectEditor()
+	) {
+		let result = { x, y };
+
+		if (this.isAltDown) {
+			// No regular snapping while alt is held
+			return result;
+		}
+
+		let tmp = { x: result.x, y: result.y };
+		let guides = editor.project.settings.guides;
+
+		// grids
+		if (guides.grids.enabled && guides.grids.snap && !this.isAltDown) {
+			let grid = new Grid();
+			grid.settings.x.size = editor.project.settings.font.upm / 10;
+			grid.settings.y.size = editor.project.settings.font.upm / 10;
+
+			let snapped = grid.snap(x, y, this.current.zoom);
+			tmp.x = snapped.x;
+			tmp.y = snapped.y;
+			if (snapped.xHit && snapped.yHit) this.snap.titles.all = 'grid intersection';
+			if (snapped.xHit) this.snap.titles.x = 'vertical grid line';
+			if (snapped.yHit) this.snap.titles.y = 'horizontal grid line';
+		}
+
+		// System guide snap
+		if (guides.system.enabled) {
+			let item = getCurrentProjectEditor().selectedItem;
+			for (const guide of Object.values(guides.system.getAll(item))) {
+				if (guide.enabled) {
+					let snapped = guide.snap(x, y, this.current.zoom);
+					if (snapped.xHit) {
+						tmp.x = snapped.x;
+						this.snap.titles.x = guide.name;
+					}
+					if (snapped.yHit) {
+						tmp.y = snapped.y;
+						this.snap.titles.y = guide.name;
+					}
+				}
+			}
+		}
+		// Custom guide snap
+		if (guides.custom.enabled) {
+			for (const guide of guides.custom.guides) {
+				if (guide.enabled) {
+					let snapped = guide.snap(x, y, this.current.zoom);
+					if (snapped.xHit) {
+						tmp.x = snapped.x;
+						this.snap.titles.y = guide.name;
+					}
+					if (snapped.yHit) {
+						tmp.y = snapped.y;
+						this.snap.titles.y = guide.name;
+					}
+				}
+			}
+		}
+
+		// log(`lock.x: ${this.lock.x}, lock.y: ${this.lock.y}`);
+		if (!this.lock.x) result.x = tmp.x;
+		if (!this.lock.y) result.y = tmp.y;
+
+		makeAndShowSnapNotation(result, this.snap.titles.x, this.snap.titles.y, this.snap.titles.all);
+		return result;
+	}
+	/**
+	 * @param {ProjectEditor} editor - working editor
+	 */
+	snapBoundingBox(editor = getCurrentProjectEditor()) {
+		let result = this.current.point;
+		let corners = this.initial.maxes.corners;
+
+		let bl = { x: corners[0].x - this.current.offset.x, y: corners[0].y - this.current.offset.y };
+		// log(corners);
+		let snapped = this.snapPoint(bl.x, bl.y, editor);
+
+		if (!this.lock.x) result.x = this.current.point.x - (bl.x - snapped.x);
+		if (!this.lock.y) result.y = this.current.point.y - (bl.y - snapped.y);
+		return result;
+	}
+
+	axisLock(x = this.current.point.x, y = this.current.point.y, editor = getCurrentProjectEditor()) {
+		let result = { x, y };
+
+		this.lock = { x: false, y: false };
+		if (this.isShiftDown) {
+			// Check for locking to horizontal/vertical
+			if (!this.ctxType?.startsWith('h') || this.isCtrlDown) {
+				const base = { x: this.initial.point.x, y: this.initial.point.y };
+				const ang = calculateAngle({ x, y }, base);
+				if (isAngleMoreHorizontal(ang)) {
+					// Point is moving more horizontal, lock to mouse y
+					// log(`locking to y`);
+					this.lock.y = true;
+					result.y = this.initial.point.y;
+					this.snap.titles.y = 'Horizontal lock';
+				} else {
+					// Point is moving more vertical, lock to mouse x
+					// log(`locking to x`);
+					this.lock.x = true;
+					result.x = this.initial.point.x;
+					this.snap.titles.x = 'Vertical lock';
+				}
+			} else if (typeof this.initial.point?.angle === 'number') {
+				this.lock = { x: true, y: true };
+				let initial = this.initial.point;
+				// log(`Initial point angle: ${initial.angle}`);
+				const ux = Math.cos(initial.angle);
+				const uy = Math.sin(initial.angle);
+				// Vector from start to current
+				const dx = x - initial.x;
+				const dy = y - initial.y;
+				// Dot product (projection distance)
+				const t = dx * ux + dy * uy;
+				result = {
+					x: initial.x + t * ux,
+					y: initial.y + t * uy,
+				};
+				this.snap.titles.all = 'Angle lock';
+			}
+		}
+		return result;
 	}
 }
 

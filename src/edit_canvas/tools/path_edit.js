@@ -1,7 +1,6 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
 import { refreshPanel } from '../../panels/panels.js';
-import { Snap } from '../../project_editor/snap.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
 import { isOverControlPoint } from '../detect_edit_affordances.js';
@@ -65,7 +64,7 @@ export class Tool_PathEdit {
 		if (this.controlPoint?.type) {
 			// log('detected CONTROL POINT');
 			this.setInitialPoint();
-			log(`set initial point x: ${ehd.initial.point.x}, y: ${ehd.initial.point.x}`);
+			// log(`set initial point x: ${ehd.initial.point.x}, y: ${ehd.initial.point.x}`);
 			this.draggingPoint = true;
 			const isPathPointSelected = msPoints.isSelected(this.pathPoint);
 
@@ -134,8 +133,6 @@ export class Tool_PathEdit {
 		const editor = getCurrentProjectEditor();
 		const msPoints = editor.multiSelect.points;
 		const view = editor.view;
-		const snap = new Snap();
-		snap.point.parent = this.controlPoint.parent;
 		ehd.ctxType = this.controlPoint.type;
 
 		// An easing function based on quint 'ease-in-out'
@@ -163,7 +160,7 @@ export class Tool_PathEdit {
 		}
 
 		if (this.draggingPoint) {
-			log('Dragging');
+			// log('Dragging');
 			// msPoints.setActive(this.pathPoint, ehd.ctxType);
 			// Moving points if mousedown
 			this.monitorForDeselect = false;
@@ -171,13 +168,13 @@ export class Tool_PathEdit {
 				x: ehd.initial.point.x - ehd.current.offset.x,
 				y: ehd.initial.point.y - ehd.current.offset.y,
 			};
-			log(`new point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
-			log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
+			// log(`new point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
+			// log(`offset: x: ${ehd.current.offset.x}, y: ${ehd.current.offset.y}`);
 			// log(`dragging with ms.singleHandle: ${msPoints.singleHandle}`);
 			// log(`cpt: ${cpt}`);
 
-			ehd.current.point = snap.axisLock();
-			ehd.current.point = snap.snapPoint();
+			ehd.current.point = ehd.axisLock();
+			ehd.current.point = ehd.snapPoint();
 
 			if (msPoints.members.length === 1) {
 				if (ehd.ctxType === 'p') {
@@ -195,7 +192,7 @@ export class Tool_PathEdit {
 				}
 			}
 
-			log(`processed point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
+			// log(`processed point pos: x: ${ehd.current.point.x}, y: ${ehd.current.point.y}`);
 
 			// log(`dx: ${dx}, dy: ${dy}`);
 			msPoints.setPathPointPosition(ehd.current.point.x, ehd.current.point.y);
@@ -215,7 +212,7 @@ export class Tool_PathEdit {
 			);
 			editor.editCanvas.redraw('pathEdit:mousemove');
 		} else if (this.draggingCurve) {
-			log(`Dragging curve`);
+			// log(`Dragging curve`);
 			// Get the current path and path points
 			const parent = editor.multiSelect.shapes.singleton;
 			const p1 = parent.pathPoints[this.overCurve.point];
@@ -381,7 +378,7 @@ export class Tool_PathEdit {
 
 	setInitialPoint() {
 		// log(`Tool_PathEdit.setInitialPoint`, 'start');
-		log(`setting initial point`);
+		// log(`setting initial point`);
 		// ehd.initial.mouse.x = ehd.current.mouse.s.y;
 		// ehd.initial.mouse.y = ehd.current.mouse.s.y;
 

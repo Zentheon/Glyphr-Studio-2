@@ -156,7 +156,7 @@ export function clickEmptySpace() {
  */
 
 export function selectItemsInArea(x1, y1, x2, y2, type = 'pathPoints') {
-	log(`selecting, type: ${type}`);
+	// log(`selecting, type: ${type}`);
 	const minX = Math.min(x1, x2);
 	const minY = Math.min(y1, y2);
 	const maxX = Math.max(x1, x2);
