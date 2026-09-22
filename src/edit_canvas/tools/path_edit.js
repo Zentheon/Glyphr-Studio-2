@@ -1,5 +1,6 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, radiansToNiceAngle } from '../../common/functions.js';
+import { makeAndShowSnapNotation } from '../../controls/dialogs/dialogs.js';
 import { refreshPanel } from '../../panels/panels.js';
 import { findAndCallHotspot } from '../context_characters.js';
 import { setCursor } from '../cursors.js';
@@ -196,6 +197,7 @@ export class Tool_PathEdit {
 
 			// log(`dx: ${dx}, dy: ${dy}`);
 			msPoints.setPathPointPosition(ehd.current.point.x, ehd.current.point.y);
+			makeAndShowSnapNotation(ehd.current.point, ehd.snap.titles);
 
 			// ehd.last.mouse.c.x = ehd.current.mouse.c.x;
 			// ehd.last.mouse.c.y = ehd.current.mouse.c.y;

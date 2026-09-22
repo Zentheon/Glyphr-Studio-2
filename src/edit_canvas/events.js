@@ -1,6 +1,6 @@
 import { getCurrentProjectEditor } from '../app/main.js';
 import { calculateAngle } from '../common/functions.js';
-import { makeAndShowSnapNotation, showToast } from '../controls/dialogs/dialogs.js';
+import { showToast } from '../controls/dialogs/dialogs.js';
 import { Maxes } from '../project_data/maxes.js';
 import { Grid } from '../project_editor/grid.js';
 import { ProjectEditor } from '../project_editor/project_editor.js';
@@ -58,7 +58,7 @@ export class EventHandlerData {
 			maxes: null,
 		};
 		this.lock = { x: false, y: false };
-		this.snap = { titles: { x: '', y: '' } };
+		this.snap = { titles: { x: '', y: '', all: '' } };
 		this.handle = '';
 		this.rotationStartCenter = {};
 		this.rotationStartMaxesTopY = -100;
@@ -79,6 +79,10 @@ export class EventHandlerData {
 		this.canvasHotspotHovering = false;
 		this.canvasHotspots = [];
 		this.ctxType = null;
+	}
+
+	reset() {
+		this.snap.titles = { x: '', y: '', all: '' };
 	}
 
 	/**
@@ -268,7 +272,6 @@ export class EventHandlerData {
 		if (!this.lock.x) result.x = tmp.x;
 		if (!this.lock.y) result.y = tmp.y;
 
-		makeAndShowSnapNotation(result, this.snap.titles.x, this.snap.titles.y, this.snap.titles.all);
 		return result;
 	}
 	/**

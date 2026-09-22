@@ -237,21 +237,18 @@ export function makeAndShowPathAddPointNotation(emPoint) {
 /**
  * Shows a notation for what is currently being snapped to
  * @param {Object} emPoint - x/y point for where to show it
- * @param {string} xTitle
- * @param {string} yTitle
- * @param {string} snapTitle
+ * @param {object} titles
  */
-export function makeAndShowSnapNotation(emPoint, xTitle, yTitle, snapTitle) {
-	let x = round(emPoint.x, 3);
-	let y = round(emPoint.y, 3);
-
-	xTitle = xTitle ? `<br><label>${xTitle}</label>` : '';
-	yTitle = yTitle ? `<br><label>${yTitle}</label>` : '';
-
-	if (!xTitle && !yTitle) {
+export function makeAndShowSnapNotation(emPoint, titles) {
+	if (!titles.x && !titles.y) {
 		closeAllNotations();
 		return;
 	}
+	let x = round(emPoint.x, 3);
+	let y = round(emPoint.y, 3);
+
+	let xTitle = titles.x ? `<br><label>${titles.x}</label>` : '';
+	let yTitle = titles.y ? `<br><label>${titles.y}</label>` : '';
 
 	let content = `
 	<div class="notation snap">

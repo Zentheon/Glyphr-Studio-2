@@ -183,6 +183,7 @@ export class EditCanvas extends HTMLElement {
 		const height = Number(this.height);
 		const currentItemID = this.editingItemID;
 		const currentItem = project.getItem(currentItemID);
+		ehd.reset();
 		runQualityChecksForItem(currentItem);
 		// log(`currentItemID: ${currentItemID}`);
 		const advanceWidth = currentItem?.advanceWidth || 0;

@@ -1,5 +1,6 @@
 import { getCurrentProjectEditor } from '../../app/main.js';
 import { calculateAngle, clone } from '../../common/functions.js';
+import { makeAndShowSnapNotation } from '../../controls/dialogs/dialogs.js';
 import { refreshPanel } from '../../panels/panels.js';
 import { isMaxes } from '../../project_data/maxes.js';
 import { findAndCallHotspot } from '../context_characters.js';
@@ -203,6 +204,7 @@ export class Tool_Resize {
 			ehd.current.point = ehd.snapBoundingBox();
 
 			msShapes.setShapePosition(ehd.current.point.x, ehd.current.point.y);
+			makeAndShowSnapNotation(ehd.current.point, ehd.snap.titles);
 			this.monitorForDeselect = false;
 			this.didStuff = true;
 		}
