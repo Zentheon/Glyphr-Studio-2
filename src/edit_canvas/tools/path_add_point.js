@@ -1,10 +1,9 @@
-import { getCurrentProjectEditor } from '../../app/main.js';
+import { getCurrentProjectEditor, getCurrentTheme } from '../../app/main.js';
 import { round } from '../../common/functions.js';
 import {
 	closeAllNotations,
 	makeAndShowPathAddPointNotation,
 } from '../../controls/dialogs/dialogs.js';
-import { canvasUIPointSize } from '../draw_edit_affordances.js';
 import { cXsX, cYsY, sXcX, sYcY } from '../edit_canvas.js';
 import { ehd } from '../events.js';
 import { getShapeAtLocation, selectTool } from './tools.js';
@@ -65,6 +64,8 @@ export class Tool_PathAddPoint {
 
 	mousemove() {
 		const editor = getCurrentProjectEditor();
+		const theme = getCurrentTheme().active;
+
 		let singlePath = editor.multiSelect.shapes.singleton;
 		if (singlePath) {
 			let curvePoint = singlePath.findClosestPointOnCurve({
@@ -78,8 +79,8 @@ export class Tool_PathAddPoint {
 			if (curvePoint && curvePoint.distance < 20) {
 				this.previewPoint = curvePoint;
 				let canvasPoint = {
-					x: sXcX(curvePoint.x) - canvasUIPointSize / 2,
-					y: sYcY(curvePoint.y) - canvasUIPointSize / 2,
+					x: sXcX(curvePoint.x) - theme.handleSize / 2,
+					y: sYcY(curvePoint.y) - theme.handleSize / 2,
 				};
 				makeAndShowPathAddPointNotation(curvePoint);
 				ehd.hoverPoint = canvasPoint;

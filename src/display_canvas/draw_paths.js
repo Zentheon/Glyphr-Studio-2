@@ -1,4 +1,4 @@
-import { getCurrentProject, getCurrentProjectEditor } from '../app/main.js';
+import { getCurrentProject, getCurrentProjectEditor, getCurrentTheme } from '../app/main.js';
 import { accentColors } from '../common/colors.js';
 import { round } from '../common/functions.js';
 import { sXcX, sYcY } from '../edit_canvas/edit_canvas.js';
@@ -16,10 +16,13 @@ import { Path } from '../project_data/path.js';
  * @param {Object} ctx - canvas context
  * @param {Object} view - x/y/z view object
  * @param {Number} alpha - transparency between 0 and 1
- * @param {String} fill - glyph fill color
+ * @param {String} fill - glyph fill color (Default: sourced from theme)
  * @returns {Number} - Advance Width, according to view.z
  */
-export function drawGlyph(glyph, ctx, view = { x: 0, y: 0, z: 1 }, alpha = 1, fill = '#000') {
+export function drawGlyph(glyph, ctx, view = { x: 0, y: 0, z: 1 }, alpha = 1, fill = undefined) {
+	if (!fill) {
+		fill = getCurrentTheme().active.colors.glyphFill;
+	}
 	// log('drawGlyph', 'start');
 	// log(glyph.name);
 	// log('view ' + json(view, true));

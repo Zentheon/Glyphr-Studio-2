@@ -2,6 +2,7 @@ import {
 	getConfigGroup,
 	getCurrentProject,
 	getCurrentProjectEditor,
+	getCurrentTheme,
 	getGlyphrStudioApp,
 } from '../app/main.js';
 import { makeRandomSaturatedColor, parseColorString, rgbToHex } from '../common/colors.js';
@@ -9,12 +10,7 @@ import { addAsChildren, makeElement } from '../common/dom.js';
 import { round } from '../common/functions.js';
 import { makeIcon } from '../common/graphics.js';
 import { makeFancySlider } from '../controls/fancy-slider/fancy_slider.js';
-import {
-	Guide,
-	guideColorDark,
-	guideColorLight,
-	guideColorMedium,
-} from '../project_editor/guide.js';
+import { Guide } from '../project_editor/guide.js';
 import { makeActionButton } from './action_buttons.js';
 import { makeDirectCheckbox, makeSingleInput, makeSingleLabel, rowPad } from './cards.js';
 import { refreshPanel } from './panels.js';

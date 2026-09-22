@@ -16,6 +16,7 @@ import { GlyphrStudioProject } from '../project_data/glyphr_studio_project.js';
 import { closeAllNavMenus } from '../project_editor/navigator.js';
 import { ProjectEditor } from '../project_editor/project_editor.js';
 import { GlyphrStudioApp, showAppErrorPage } from './app.js';
+import { GlyphrTheme } from '../project_data/theme.js';
 
 /**
  * First function to run when the browser starts
@@ -133,13 +134,12 @@ export function getShipDate(dayOffset = 0) {
 // Getting root objects (App, Editor, Project / Current, Import Target)
 // --------------------------------------------------------------
 
+// The main app object
+let GSApp;
 /**
  * Returns the overall App object
  * @returns {GlyphrStudioApp}
  */
-
-// The main app object
-let GSApp;
 export function getGlyphrStudioApp() {
 	if (!GSApp) {
 		GSApp = new GlyphrStudioApp();
@@ -212,6 +212,14 @@ export function addProjectEditorAndSetAsImportTarget() {
 	app.editorImportTarget = app.projectEditors.at(-1);
 	// log(`addProjectEditorAndSetAsImportTarget`, 'end');
 	return getProjectEditorImportTarget();
+}
+
+/**
+ * Retrieves the current theme set by the app
+ * @returns {GlyphrTheme}
+ */
+export function getCurrentTheme() {
+	return GSApp.theme;
 }
 
 // --------------------------------------------------------------

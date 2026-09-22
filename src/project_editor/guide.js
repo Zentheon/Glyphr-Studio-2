@@ -5,6 +5,7 @@
 		custom guides to a Glyphr Studio Project.
 **/
 
+import { getCurrentTheme } from '../app/main';
 import { makeRandomSaturatedColor } from '../common/colors';
 
 export class Guide {
@@ -105,13 +106,14 @@ export class SystemGuides {
 			});
 		}
 
-		initGuide(this, 'ascent', false, 90, 'Ascent', font.ascent, guideColorMedium);
-		initGuide(this, 'capHeight', false, 90, 'Cap height', font.capHeight, guideColorLight);
-		initGuide(this, 'xHeight', false, 90, 'X height', font.xHeight, guideColorLight);
-		initGuide(this, 'baseline', true, 90, 'Baseline', 0, guideColorDark);
-		initGuide(this, 'descent', false, 90, 'Descent', font.descent, guideColorMedium);
-		initGuide(this, 'leftSide', true, 0, 'Left side', 0, guideColorDark);
-		initGuide(this, 'rightSide', true, 0, 'Right side', 0, guideColorDark);
+		const theme = getCurrentTheme().active;
+		initGuide(this, 'ascent', false, 90, 'Ascent', font.ascent, theme.colors.guideMedium);
+		initGuide(this, 'capHeight', false, 90, 'Cap height', font.capHeight, theme.colors.guideLight);
+		initGuide(this, 'xHeight', false, 90, 'X height', font.xHeight, theme.colors.guideLight);
+		initGuide(this, 'baseline', true, 90, 'Baseline', 0, theme.colors.guideDark);
+		initGuide(this, 'descent', false, 90, 'Descent', font.descent, theme.colors.guideMedium);
+		initGuide(this, 'leftSide', true, 0, 'Left side', 0, theme.colors.guideDark);
+		initGuide(this, 'rightSide', true, 0, 'Right side', 0, theme.colors.guideDark);
 
 		// log(`Guide.constructor`, 'end');
 	}

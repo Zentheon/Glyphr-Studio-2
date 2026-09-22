@@ -1,10 +1,9 @@
-import { getCurrentProjectEditor } from '../app/main.js';
+import { getCurrentProjectEditor, getCurrentTheme } from '../app/main.js';
 import { clone } from '../common/functions.js';
 import { closeAllNotations, closeEveryTypeOfDialog } from '../controls/dialogs/dialogs.js';
 import { Maxes, maxesOverlap } from '../project_data/maxes.js';
 import { findAndUnderlineHotspot, isHotspotHere } from './context_characters.js';
 import { setCursor } from './cursors.js';
-import { canvasUIPointSize } from './draw_edit_affordances.js';
 import { cXsX, cYsY } from './edit_canvas.js';
 import { ehd } from './events.js';
 
@@ -413,6 +412,7 @@ export function checkForMouseOverHotspot(x, y) {
  */
 export function canResize(handle) {
 	const editor = getCurrentProjectEditor();
+	const theme = getCurrentTheme().active;
 	const msShapes = editor.multiSelect.shapes;
 	let selected = msShapes;
 	if (msShapes.length > 1) {
@@ -430,7 +430,7 @@ export function canResize(handle) {
 	let hl = selected.hLock;
 	let yMax = selected.maxes.yMax;
 	let yMin = selected.maxes.yMin;
-	let handleSize = canvasUIPointSize / 2 / editor.view.dz;
+	let handleSize = theme.handleSize / 2 / editor.view.dz;
 	let re = true;
 
 	switch (handle) {

@@ -85,7 +85,7 @@
 .editor-page__edit-canvas-wrapper,
 .live-preview-page__canvas-wrapper {
 	border: 1px solid var(--blue-l85);
-	background-color: white;
+	background-color: var(--color-glyph-background);
 	grid-column: 3;
 	border-radius: 4px;
 	width: 100%;

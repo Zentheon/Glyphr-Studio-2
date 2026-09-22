@@ -220,6 +220,37 @@ export function parseColorString(c) {
 }
 
 /**
+ * Converts an HSL color string into its numeric components
+ * @param {string} colorStr - Color in hsl(h,s%,l%) or hsla(h,s%,l%,a) format
+ * @param {boolean} [normalizeHue=false] - whether to wrap hue to 0–360
+ * @returns {{h:number, s:number, l:number, a:number}|undefined} normalized HSV object or undefined if invalid format
+ */
+export const parseHSLString = (/** @type {string} */ colorStr, normalizeHue = false) => {
+	let match = colorStr.match(/hsl\((-?\d+),\s*(\d+)%,\s*(\d+)%\)/);
+
+	if (!match) {
+		// Try HSLA
+		match = colorStr.match(/hsla\((\d+),\s*(\d+)%,\s*(\d+)%,\s*(\d(?:\.\d+)?)\)/);
+		log(match);
+		if (!match) {
+			return undefined;
+		}
+	}
+
+	let h = Number(match[1]);
+	const s = Number(match[2]);
+	const l = Number(match[3]);
+	const a = Number(match[4]) || 1;
+
+	if (normalizeHue) {
+		h %= 360;
+		if (h < 0) h += 360;
+	}
+
+	return { h, s, l, a };
+};
+
+/**
  * Converts an RGB color string to it's Hex format
  * @param {String} rgbString - color in rgb(0,0,0) format
  * @returns {String} color in #000000 format
@@ -348,4 +379,53 @@ export function makeRandomSaturatedColor() {
 			break;
 	}
 	return 'rgb(' + arr[0] + ',' + arr[1] + ',' + arr[2] + ')';
+}
+
+/**
+ * Takes a CSS HSL color, offsets for each value, and returns the resulting color.
+ *
+ * Output is HSLA if an alpha offset is provided and/or input color is HSLA.
+ * @param {string} baseColor - Reference (hsl) color.
+ * @param {object} offset - Offset options.
+ * @param {number} [offset.hue=0] - Hue adjustment in degrees; e.g. 320 results in the same color.
+ * @param {number} [offset.sat=0] - Satruation adjustment (percentage).
+ * @param {number} [offset.val=0] - Lightness offset (percentage).
+ * @param {number} [offset.alpha=0] - Alpha offset (float).
+ * @param {boolean} [offset.relative=false] - If true, saturation, lightness and alpha are scaled
+ *  by the corresponding values from the input color.
+ * @returns {string} A CSS HSL value.
+ */
+export function offsetHSL(
+	baseColor,
+	{
+		hue: hueOffset = 0,
+		sat: satOffset = 0,
+		val: valOffset = 0,
+		alpha: alphaOffset = 0,
+		relative = false,
+	}
+) {
+	let { h: h1, s: s1, l: l1, a: a1 } = parseHSLString(baseColor);
+
+	// Calculate second color by applying offsets
+	let h2 = (h1 + hueOffset) % 360;
+	h2 = h2 < 0 ? h2 + 360 : h2;
+
+	if (relative) {
+		satOffset *= s1 / 100;
+		valOffset *= l1 / 100;
+		alphaOffset *= a1;
+	}
+
+	// Get offsets
+	let s2 = Math.round(Math.min(Math.max(s1 + satOffset, 0), 100));
+	let l2 = Math.round(Math.min(Math.max(l1 + valOffset, 0), 100));
+	// 3 digit precision
+	let a2 = Math.floor((a1 + alphaOffset) * 1000) / 1000;
+
+	if (alphaOffset || baseColor.startsWith('hsla')) {
+		return `hsla(${h2}, ${s2}%, ${l2}%, ${a2})`;
+	} else {
+		return `hsl(${h2}, ${s2}%, ${l2}%)`;
+	}
 }
