@@ -21,11 +21,6 @@ export class Snap {
 		this.settings = {};
 		/** @type {MultiSelectShapes | null} */
 		this.shapes = null;
-		this.point = {
-			x: 0,
-			y: 0,
-			parent: null,
-		};
 		/** @type {string[]} */
 		this.snappedTitles = [];
 		this.xTitle = null;
@@ -52,9 +47,6 @@ export class Snap {
 	) {
 		let result = { x, y };
 
-		this.xTitle = null;
-		this.yTitle = null;
-		this.snapTitle = null;
 		if (data.isAltDown) {
 			// No regular snapping while alt is held
 			return result;
@@ -118,7 +110,7 @@ export class Snap {
 			}
 		}
 
-		log(`lock.x: ${this.lock.x}, lock.y: ${this.lock.y}`);
+		// log(`lock.x: ${this.lock.x}, lock.y: ${this.lock.y}`);
 		if (!this.lock.x) result.x = tmp.x;
 		if (!this.lock.y) result.y = tmp.y;
 
@@ -130,17 +122,15 @@ export class Snap {
 	 * @param {object} data - event handler data
 	 */
 	snapBoundingBox(editor = getCurrentProjectEditor(), data = ehd) {
+		let result = ehd.current.point;
 		let corners = data.initial.maxes.corners;
 
 		let bl = { x: corners[0].x - data.current.offset.x, y: corners[0].y - data.current.offset.y };
 		// log(corners);
-		this.point.x = data.initial.point.x - data.current.offset.x;
-		this.point.y = data.initial.point.y - data.current.offset.y;
+		let snapped = this.snapPoint(bl.x, bl.y, editor, data);
 
-		let result = this.snapPoint(bl.x, bl.y, editor, data);
-
-		result.x = data.current.point.x - (bl.x - result.x);
-		result.y = data.current.point.y - (bl.y - result.y);
+		if (!this.lock.x) result.x = data.current.point.x - (bl.x - snapped.x);
+		if (!this.lock.y) result.y = data.current.point.y - (bl.y - snapped.y);
 		return result;
 	}
 	// --------------------------------------------------------------
@@ -165,16 +155,18 @@ export class Snap {
 					// log(`locking to y`);
 					this.lock.y = true;
 					result.y = data.initial.point.y;
+					this.yTitle = 'Horizontal lock';
 				} else {
 					// Point is moving more vertical, lock to mouse x
 					// log(`locking to x`);
 					this.lock.x = true;
 					result.x = data.initial.point.x;
+					this.xTitle = 'Vertical lock';
 				}
 			} else if (typeof data.initial.point?.angle === 'number') {
 				this.lock = { x: true, y: true };
 				let initial = data.initial.point;
-				log(`Initial point angle: ${initial.angle}`);
+				// log(`Initial point angle: ${initial.angle}`);
 				const ux = Math.cos(initial.angle);
 				const uy = Math.sin(initial.angle);
 				// Vector from start to current
@@ -186,6 +178,7 @@ export class Snap {
 					x: initial.x + t * ux,
 					y: initial.y + t * uy,
 				};
+				this.snapTitle = 'Angle lock';
 			}
 		}
 		return result;
