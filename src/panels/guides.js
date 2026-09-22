@@ -42,7 +42,7 @@ export function makePanel_Guides() {
 	});
 	addAsChildren(viewOptionsCard, [
 		enableSystemGuidesCheckbox,
-		makeElement({ tag: 'h4', content: 'Show: Key metrics guides' }),
+		makeElement({ tag: 'h4', content: 'Key metrics guides' }),
 	]);
 	if (showSystem) {
 		addAsChildren(viewOptionsCard, [
@@ -65,7 +65,7 @@ export function makePanel_Guides() {
 	});
 	addAsChildren(viewOptionsCard, [
 		enableCustomGuidesCheckbox,
-		makeElement({ tag: 'h4', content: 'Show: Custom guides' }),
+		makeElement({ tag: 'h4', content: 'Custom guides' }),
 	]);
 	if (showCustom) {
 		addAsChildren(viewOptionsCard, [
@@ -88,7 +88,7 @@ export function makePanel_Guides() {
 	});
 	addAsChildren(viewOptionsCard, [
 		enableGridsCheckbox,
-		makeElement({ tag: 'h4', content: 'Show: Grid' }),
+		makeElement({ tag: 'h4', content: 'Grids' }),
 	]);
 	if (showGrid) {
 		addAsChildren(viewOptionsCard, [
