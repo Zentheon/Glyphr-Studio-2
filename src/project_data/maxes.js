@@ -135,14 +135,14 @@ export class Maxes extends GlyphElement {
 
 	/**
 	 * The four corners of this Maxes
-	 * @returns {Array<{x: number, y: number}>} array of the bottom-left, top-left, top-right and bottom-right points
+	 * @returns {Array<{x: number, y: number}>} array of the top-left, top-right, bottom-right and bottom-left points
 	 */
 	get corners() {
 		return [
-			{ x: this.xMin, y: this.yMin }, // bottom-left
 			{ x: this.xMin, y: this.yMax }, // top-left
 			{ x: this.xMax, y: this.yMax }, // top-right
 			{ x: this.xMax, y: this.yMin }, // bottom-right
+			{ x: this.xMin, y: this.yMin }, // bottom-left
 		];
 	}
 
