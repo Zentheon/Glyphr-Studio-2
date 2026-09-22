@@ -106,7 +106,7 @@ export class Snap {
 			for (const guide of guides.custom.guides) {
 				if (guide.enabled) {
 					let snapped = guide.snap(x, y, data.current.zoom);
-					if (snapped.yHit) {
+					if (snapped.xHit) {
 						tmp.x = snapped.x;
 						this.xTitle = guide.name;
 					}
